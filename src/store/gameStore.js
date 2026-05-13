@@ -1,13 +1,13 @@
 import { createInitialState, DEFAULT_WALLET } from '../game/gameLogic.js'
 
 const STORAGE_KEY = 'paigow_session'
+const ALLTIME_KEY = 'paigow_alltime'
 
 export function loadSession() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const data = JSON.parse(raw)
-    // Only restore wallet and hand history — don't restore mid-round state
     return {
       wallet: typeof data.wallet === 'number' ? data.wallet : DEFAULT_WALLET,
       handHistory: Array.isArray(data.handHistory) ? data.handHistory : [],
@@ -23,22 +23,38 @@ export function saveSession(state) {
       wallet: state.wallet,
       handHistory: state.handHistory,
     }))
-  } catch {
-    // localStorage unavailable — silently continue
-  }
+  } catch {}
 }
 
 export function clearSession() {
   try {
     localStorage.removeItem(STORAGE_KEY)
+  } catch {}
+}
+
+export function loadAllTimeHistory() {
+  try {
+    const raw = localStorage.getItem(ALLTIME_KEY)
+    if (!raw) return []
+    const data = JSON.parse(raw)
+    return Array.isArray(data) ? data : []
   } catch {
-    // localStorage unavailable — silently continue
+    return []
   }
+}
+
+export function appendAllTimeEntry(entry) {
+  try {
+    const history = loadAllTimeHistory()
+    localStorage.setItem(ALLTIME_KEY, JSON.stringify([entry, ...history]))
+  } catch {}
 }
 
 export function initState(walletOverride) {
   const saved = loadSession()
   const wallet = walletOverride ?? saved?.wallet ?? DEFAULT_WALLET
   const base = createInitialState(wallet)
-  return { ...base, handHistory: saved?.handHistory ?? [] }
+  // When walletOverride is provided it's a manual reset — start with empty session history
+  const handHistory = walletOverride != null ? [] : (saved?.handHistory ?? [])
+  return { ...base, handHistory }
 }

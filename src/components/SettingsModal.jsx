@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { DEFAULT_WALLET, MIN_BET } from '../game/gameLogic.js'
 
-export default function SettingsModal({ wallet, onSave, onCancel }) {
+export default function SettingsModal({ wallet, allTimeHistory, onSave, onCancel }) {
   const [value, setValue] = useState(String(wallet))
 
   function handleSave() {
@@ -10,9 +10,25 @@ export default function SettingsModal({ wallet, onSave, onCancel }) {
     onSave(n)
   }
 
+  const wins = allTimeHistory.filter(h => h.outcome === 'WIN').length
+  const losses = allTimeHistory.filter(h => h.outcome === 'LOSS').length
+  const pushes = allTimeHistory.filter(h => h.outcome === 'PUSH').length
+  const total = wins + losses + pushes
+
   return (
     <div className="modal-backdrop" onClick={onCancel}>
       <div className="modal" onClick={e => e.stopPropagation()}>
+        {total > 0 && (
+          <div className="alltime-stats">
+            <div className="alltime-title">All-Time Record</div>
+            <div className="alltime-row">
+              <span className="stat-win">{wins}W</span>
+              <span className="stat-push">{pushes}P</span>
+              <span className="stat-loss">{losses}L</span>
+              <span className="alltime-total">({total} hands)</span>
+            </div>
+          </div>
+        )}
         <h2>Reset Wallet</h2>
         <p>Set your starting balance:</p>
         <div className="modal-presets">
