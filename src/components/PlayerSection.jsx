@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Card from './Card.jsx'
 import HandLabel from './HandLabel.jsx'
-import { sortByRankDesc } from '../game/cards.js'
+import { sortForDisplay } from '../game/cards.js'
 
 export default function PlayerSection({
   phase,
@@ -175,10 +175,10 @@ export default function PlayerSection({
   const showResult = phase === 'RESULT'
   const draggingId = drag?.card?.id
 
-  // Sort hands left-to-right by rank once they're locked in. Pure display —
-  // hand evaluation is order-independent, so this doesn't affect outcomes.
-  const displayFront = showResult ? sortByRankDesc(playerFront) : playerFront
-  const displayBack = showResult ? sortByRankDesc(playerBack) : playerBack
+  // Order hands for reading left-to-right once locked in. Pure display —
+  // evaluation is order-independent so this doesn't affect outcomes.
+  const displayFront = showResult ? sortForDisplay(playerFront) : playerFront
+  const displayBack = showResult ? sortForDisplay(playerBack) : playerBack
 
   return (
     <div className="player-section">

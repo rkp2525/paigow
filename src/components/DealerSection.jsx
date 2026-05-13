@@ -1,10 +1,10 @@
 import Card from './Card.jsx'
 import HandLabel from './HandLabel.jsx'
-import { sortByRankDesc } from '../game/cards.js'
+import { sortForDisplay } from '../game/cards.js'
 
 export default function DealerSection({ dealerFront, dealerBack, backResult, frontResult, revealed }) {
-  const front = revealed ? sortByRankDesc(dealerFront) : dealerFront
-  const back = revealed ? sortByRankDesc(dealerBack) : dealerBack
+  const front = revealed ? sortForDisplay(dealerFront) : dealerFront
+  const back = revealed ? sortForDisplay(dealerBack) : dealerBack
 
   return (
     <div className="dealer-section">
