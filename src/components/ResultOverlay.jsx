@@ -1,4 +1,4 @@
-export default function ResultOverlay({ outcome, bet, isAceHighPaiGow, isFoul, onNext }) {
+export default function ResultOverlay({ outcome, bet, isAceHighPaiGow, isFoul, foulBackName, foulFrontName, onNext }) {
   const config = {
     WIN:  { label: 'You Win!',  cls: 'result-win',  emoji: '🎉' },
     PUSH: { label: 'Push',     cls: 'result-push', emoji: '🤝' },
@@ -14,7 +14,9 @@ export default function ResultOverlay({ outcome, bet, isAceHighPaiGow, isFoul, o
         {outcome === 'WIN' && <div className="result-detail">+${bet}</div>}
         {outcome === 'LOSS' && <div className="result-detail">-${bet}</div>}
         {isFoul && (
-          <div className="result-note">Foul Hand — 2-card hand outranks 5-card hand</div>
+          <div className="result-note">
+            Foul Hand — {foulFrontName} (front) outranks {foulBackName} (back)
+          </div>
         )}
         {isAceHighPaiGow && (
           <div className="result-note">Dealer Ace-High Pai Gow — Table Push</div>

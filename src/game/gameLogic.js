@@ -27,6 +27,8 @@ export function createInitialState(wallet = DEFAULT_WALLET) {
     outcome: null,       // 'WIN' | 'PUSH' | 'LOSS'
     isAceHighPaiGow: false,
     isFoul: false,
+    foulBackName: null,
+    foulFrontName: null,
     backResult: null,    // 'WIN' | 'TIE' | 'LOSS' (player vs dealer back)
     frontResult: null,
     handHistory: [],     // [{outcome, bet, wallet}]
@@ -81,6 +83,8 @@ export function resolveRound(state) {
       wallet: newWallet,
       outcome: 'LOSS',
       isFoul: true,
+      foulBackName: pBackEval.name,
+      foulFrontName: pFrontEval.name,
       isAceHighPaiGow: false,
       backResult: 'LOSS',
       frontResult: 'LOSS',
@@ -154,6 +158,8 @@ export function nextRound(state) {
     dealerFront: [],
     outcome: null,
     isFoul: false,
+    foulBackName: null,
+    foulFrontName: null,
     backResult: null,
     frontResult: null,
     isAceHighPaiGow: false,
