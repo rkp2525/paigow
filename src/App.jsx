@@ -37,14 +37,20 @@ export default function App() {
 
   function handleSetHand(back, front) {
     updateState(prev => {
-      // Auto-fill back hand with all unassigned cards once front has 2
+      const assignedIds = new Set([...back.map(c => c.id), ...front.map(c => c.id)])
+      const remaining = prev.playerCards.filter(c => !assignedIds.has(c.id))
+
       let resolvedBack = back
-      if (front.length === 2) {
-        const assignedIds = new Set([...back.map(c => c.id), ...front.map(c => c.id)])
-        const remaining = prev.playerCards.filter(c => !assignedIds.has(c.id))
+      let resolvedFront = front
+
+      // Auto-fill the other hand with whatever's left once one hand is complete
+      if (front.length === 2 && back.length < 5) {
         resolvedBack = [...back, ...remaining]
+      } else if (back.length === 5 && front.length < 2) {
+        resolvedFront = [...front, ...remaining]
       }
-      return setPlayerHand(prev, resolvedBack, front)
+
+      return setPlayerHand(prev, resolvedBack, resolvedFront)
     })
   }
 

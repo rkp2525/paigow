@@ -167,6 +167,11 @@ html, body, #root {
   border: 1px dashed rgba(255,255,255,0.25);
 }
 
+.hand-drop-zone.drop-zone-hover {
+  background: rgba(201,162,39,0.15);
+  border: 1px dashed var(--gold);
+}
+
 .unassigned-group {
   border-top: 1px solid rgba(255,255,255,0.1);
   padding-top: 10px;
@@ -204,7 +209,8 @@ html, body, #root {
 }
 
 .card-clickable {
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
 }
 
 .card-clickable:hover {
@@ -279,6 +285,22 @@ html, body, #root {
 .card-sm .card-suit-lg { font-size: 17px; }
 
 .card-joker { color: purple; }
+
+/* Dragging state — faded placeholder at original position */
+.card-dragging {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* Ghost card following the pointer */
+.card-ghost {
+  position: fixed;
+  transform: translate(-50%, -50%) rotate(4deg) scale(1.08);
+  z-index: 500;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
+  transition: none;
+}
 
 .card-joker-sym {
   font-size: 22px;
