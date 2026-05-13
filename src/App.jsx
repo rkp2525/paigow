@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { PHASE, dealRound, setPlayerHand, resolveRound, nextRound, MIN_BET, BET_INCREMENT } from './game/gameLogic.js'
 import { applyHouseWay } from './game/houseWay.js'
 import { initState, saveSession, appendAllTimeEntry, loadAllTimeHistory } from './store/gameStore.js'
@@ -14,6 +14,7 @@ export default function App() {
   const [state, setState] = useState(() => initState())
   const [showSettings, setShowSettings] = useState(false)
   const [allTimeHistory, setAllTimeHistory] = useState(() => loadAllTimeHistory())
+  const pendingHistoryEntryRef = useRef(null)
 
   // Persist wallet whenever it changes
   useEffect(() => {
@@ -62,14 +63,22 @@ export default function App() {
     })
   }
 
+  // Record alltime entry exactly once per SETTING→RESULT transition, safe under StrictMode
+  // and rapid double-clicks (ref is nulled after first effect run)
+  useEffect(() => {
+    if (state.phase === 'RESULT' && pendingHistoryEntryRef.current) {
+      appendAllTimeEntry(pendingHistoryEntryRef.current)
+      setAllTimeHistory(loadAllTimeHistory())
+      pendingHistoryEntryRef.current = null
+    }
+  }, [state.phase])
+
   function handleConfirmHand() {
     if (state.playerBack.length !== 5 || state.playerFront.length !== 2) return
     updateState(prev => {
+      if (prev.phase !== 'SETTING') return prev
       const next = resolveRound(prev)
-      if (next.handHistory.length > 0) {
-        appendAllTimeEntry(next.handHistory[0])
-        setAllTimeHistory(loadAllTimeHistory())
-      }
+      pendingHistoryEntryRef.current = next.handHistory[0] ?? null
       return next
     })
   }
@@ -84,8 +93,8 @@ export default function App() {
   }
 
   const { phase, wallet, bet, playerCards, playerBack, playerFront,
-    dealerBack, dealerFront, outcome, isAceHighPaiGow,
-    backResult, frontResult, handHistory } = state
+    dealerBack, dealerFront, outcome, isAceHighPaiGow, isFoul,
+    foulBackName, foulFrontName, backResult, frontResult, handHistory } = state
 
   const playerHandComplete = playerBack.length === 5 && playerFront.length === 2
   const dealerRevealed = phase === 'SETTING' || phase === 'RESULT'
@@ -158,6 +167,9 @@ export default function App() {
           outcome={outcome}
           bet={bet}
           isAceHighPaiGow={isAceHighPaiGow}
+          isFoul={isFoul}
+          foulBackName={foulBackName}
+          foulFrontName={foulFrontName}
           onNext={handleNextRound}
         />
       )}

@@ -26,6 +26,9 @@ export function createInitialState(wallet = DEFAULT_WALLET) {
     dealerFront: [],     // dealer's 2-card front hand (set by house way)
     outcome: null,       // 'WIN' | 'PUSH' | 'LOSS'
     isAceHighPaiGow: false,
+    isFoul: false,
+    foulBackName: null,
+    foulFrontName: null,
     backResult: null,    // 'WIN' | 'TIE' | 'LOSS' (player vs dealer back)
     frontResult: null,
     handHistory: [],     // [{outcome, bet, wallet}]
@@ -68,6 +71,27 @@ export function resolveRound(state) {
     throw new Error('Player hand not fully set')
   }
 
+  // Foul check: player's back hand must be at least as strong as front hand
+  const pBackEval = evaluate5(playerBack)
+  const pFrontEval = evaluate2(playerFront)
+  if (compareHands(pBackEval, pFrontEval) < 0) {
+    const newWallet = wallet - bet
+    const entry = { outcome: 'LOSS', bet, walletAfter: newWallet }
+    return {
+      ...state,
+      phase: PHASE.RESULT,
+      wallet: newWallet,
+      outcome: 'LOSS',
+      isFoul: true,
+      foulBackName: pBackEval.name,
+      foulFrontName: pFrontEval.name,
+      isAceHighPaiGow: false,
+      backResult: 'LOSS',
+      frontResult: 'LOSS',
+      handHistory: [entry, ...state.handHistory].slice(0, 50),
+    }
+  }
+
   // Ace-high pai gow check on dealer's back hand
   const dealerBackEval = evaluate5(dealerBack)
   const isAceHighPaiGow = dealerBackEval.rank === HR.HIGH_CARD && dealerBackEval.tiebreakers[0] === 14
@@ -85,8 +109,6 @@ export function resolveRound(state) {
     }
   }
 
-  const pBackEval = evaluate5(playerBack)
-  const pFrontEval = evaluate2(playerFront)
   const dFrontEval = evaluate2(dealerFront)
 
   const backCmp = compareHands(pBackEval, dealerBackEval)
@@ -116,6 +138,7 @@ export function resolveRound(state) {
     phase: PHASE.RESULT,
     wallet: newWallet,
     outcome,
+    isFoul: false,
     isAceHighPaiGow: false,
     backResult,
     frontResult,
@@ -134,6 +157,9 @@ export function nextRound(state) {
     dealerBack: [],
     dealerFront: [],
     outcome: null,
+    isFoul: false,
+    foulBackName: null,
+    foulFrontName: null,
     backResult: null,
     frontResult: null,
     isAceHighPaiGow: false,

@@ -254,12 +254,16 @@ export default function PlayerSection({
           data-zone="unassigned"
           className="hand-group unassigned-group"
         >
-          <div className="hand-sublabel">Drag or tap a card to place it</div>
-          <div className="card-row">
+          <div className="hand-sublabel">
+            Your Cards
+            <span className="hand-count">{unassigned.length} remaining</span>
+          </div>
+          <div className="card-row card-row-nowrap">
             {unassigned.map(c => (
               <Card
                 key={c.id}
                 card={c}
+                small
                 selected={selected === c.id}
                 dragging={draggingId === c.id}
                 onPointerDown={e => startDrag(e, c)}

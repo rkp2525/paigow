@@ -173,8 +173,15 @@ html, body, #root {
 }
 
 .unassigned-group {
-  border-top: 1px solid rgba(255,255,255,0.1);
-  padding-top: 10px;
+  border-top: 2px solid rgba(201,162,39,0.35);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.card-row-nowrap {
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 6px;
 }
 
 /* ===== CARD ROW ===== */
