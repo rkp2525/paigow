@@ -84,7 +84,7 @@ export default function App() {
   }
 
   const { phase, wallet, bet, playerCards, playerBack, playerFront,
-    dealerBack, dealerFront, outcome, isAceHighPaiGow,
+    dealerBack, dealerFront, outcome, isAceHighPaiGow, isFoul,
     backResult, frontResult, handHistory } = state
 
   const playerHandComplete = playerBack.length === 5 && playerFront.length === 2
@@ -158,6 +158,7 @@ export default function App() {
           outcome={outcome}
           bet={bet}
           isAceHighPaiGow={isAceHighPaiGow}
+          isFoul={isFoul}
           onNext={handleNextRound}
         />
       )}
