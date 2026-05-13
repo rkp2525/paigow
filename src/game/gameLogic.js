@@ -79,8 +79,8 @@ export function resolveRound(state) {
       phase: PHASE.RESULT,
       outcome: 'PUSH',
       isAceHighPaiGow: true,
-      backResult: 'PUSH',
-      frontResult: 'PUSH',
+      backResult: 'TIE',
+      frontResult: 'TIE',
       handHistory: [entry, ...state.handHistory].slice(0, 50),
     }
   }

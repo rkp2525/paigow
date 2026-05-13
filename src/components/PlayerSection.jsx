@@ -43,6 +43,7 @@ export default function PlayerSection({
 
     const srcInFront = newFront.some(c => c.id === srcCard.id)
     const srcInBack = newBack.some(c => c.id === srcCard.id)
+    const srcInUnassigned = !srcInFront && !srcInBack
     const destInFront = newFront.some(c => c.id === destCard.id)
     const destInBack = newBack.some(c => c.id === destCard.id)
     const destInUnassigned = !destInFront && !destInBack
