@@ -64,14 +64,12 @@ export default function App() {
 
   function handleConfirmHand() {
     if (state.playerBack.length !== 5 || state.playerFront.length !== 2) return
-    updateState(prev => {
-      const next = resolveRound(prev)
-      if (next.handHistory.length > 0) {
-        appendAllTimeEntry(next.handHistory[0])
-        setAllTimeHistory(loadAllTimeHistory())
-      }
-      return next
-    })
+    const next = resolveRound(state)
+    updateState(next)
+    if (next.handHistory.length > 0) {
+      appendAllTimeEntry(next.handHistory[0])
+      setAllTimeHistory(loadAllTimeHistory())
+    }
   }
 
   function handleNextRound() {
