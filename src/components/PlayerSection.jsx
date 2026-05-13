@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Card from './Card.jsx'
 import HandLabel from './HandLabel.jsx'
+import { sortForDisplay } from '../game/cards.js'
 
 export default function PlayerSection({
   phase,
@@ -174,6 +175,11 @@ export default function PlayerSection({
   const showResult = phase === 'RESULT'
   const draggingId = drag?.card?.id
 
+  // Order hands for reading left-to-right once locked in. Pure display —
+  // evaluation is order-independent so this doesn't affect outcomes.
+  const displayFront = showResult ? sortForDisplay(playerFront) : playerFront
+  const displayBack = showResult ? sortForDisplay(playerBack) : playerBack
+
   return (
     <div className="player-section">
       <div className="section-title">Your Hand</div>
@@ -191,7 +197,7 @@ export default function PlayerSection({
           {phase === 'SETTING' && <span className="hand-count">{playerFront.length}/2</span>}
         </div>
         <div className="card-row">
-          {playerFront.map(c => (
+          {displayFront.map(c => (
             <Card
               key={c.id}
               card={c}
@@ -206,7 +212,7 @@ export default function PlayerSection({
           ))}
         </div>
         {showResult && playerFront.length === 2 && (
-          <HandLabel cards={playerFront} is2Card result={frontResult} />
+          <HandLabel cards={displayFront} is2Card result={frontResult} />
         )}
       </div>
 
@@ -223,7 +229,7 @@ export default function PlayerSection({
           {phase === 'SETTING' && <span className="hand-count">{playerBack.length}/5</span>}
         </div>
         <div className="card-row">
-          {playerBack.map(c => (
+          {displayBack.map(c => (
             <Card
               key={c.id}
               card={c}
@@ -238,7 +244,7 @@ export default function PlayerSection({
           ))}
         </div>
         {showResult && playerBack.length === 5 && (
-          <HandLabel cards={playerBack} is2Card={false} result={backResult} />
+          <HandLabel cards={displayBack} is2Card={false} result={backResult} />
         )}
       </div>
 
