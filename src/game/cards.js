@@ -54,3 +54,10 @@ export function cardLabel(card) {
 export function cardKey(card) {
   return `${card.rank}-${card.suit ?? 'J'}`
 }
+
+// Order cards for display: highest rank on the left, lowest on the right.
+// Joker (rank value 15) sits to the left of aces. Stable for same-rank
+// cards, so suit order from the original array is preserved.
+export function sortByRankDesc(cards) {
+  return [...cards].sort((a, b) => rankValue(b) - rankValue(a))
+}
