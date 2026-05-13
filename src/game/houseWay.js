@@ -91,7 +91,20 @@ function findFlush(cards7) {
     const have = cs.length + (j ? 1 : 0)
     if (have < 5) continue
     const sorted = sortByRankDesc(cs)
-    const cards = cs.length >= 5 ? sorted.slice(0, 5) : [...sorted.slice(0, 4), j]
+
+    let cards
+    if (cs.length >= 5 && j) {
+      // Evaluate both options: top 5 naturals vs top 4 naturals + joker (as ace)
+      const naturalsOnly = sorted.slice(0, 5)
+      const withJoker = [...sorted.slice(0, 4), j]
+      const naturalsEval = evaluate5(naturalsOnly)
+      const jokerEval = evaluate5(withJoker)
+      // Pick whichever produces the higher-ranked flush
+      cards = compareHands(jokerEval, naturalsEval) > 0 ? withJoker : naturalsOnly
+    } else {
+      cards = cs.length >= 5 ? sorted.slice(0, 5) : [...sorted.slice(0, 4), j]
+    }
+
     const evald = evaluate5(cards)
     if (!best || compareHands(evald, best.eval) > 0) best = { cards, eval: evald }
   }
