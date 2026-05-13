@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PHASE, dealRound, setPlayerHand, resolveRound, nextRound, MIN_BET, BET_INCREMENT } from './game/gameLogic.js'
 import { applyHouseWay } from './game/houseWay.js'
-import { initState, saveSession } from './store/gameStore.js'
+import { initState, saveSession, appendAllTimeEntry, loadAllTimeHistory } from './store/gameStore.js'
 import WalletBar from './components/WalletBar.jsx'
 import DealerSection from './components/DealerSection.jsx'
 import PlayerSection from './components/PlayerSection.jsx'
@@ -13,6 +13,7 @@ import './App.css'
 export default function App() {
   const [state, setState] = useState(() => initState())
   const [showSettings, setShowSettings] = useState(false)
+  const [allTimeHistory, setAllTimeHistory] = useState(() => loadAllTimeHistory())
 
   // Persist wallet whenever it changes
   useEffect(() => {
@@ -63,7 +64,14 @@ export default function App() {
 
   function handleConfirmHand() {
     if (state.playerBack.length !== 5 || state.playerFront.length !== 2) return
-    updateState(prev => resolveRound(prev))
+    updateState(prev => {
+      const next = resolveRound(prev)
+      if (next.handHistory.length > 0) {
+        appendAllTimeEntry(next.handHistory[0])
+        setAllTimeHistory(loadAllTimeHistory())
+      }
+      return next
+    })
   }
 
   function handleNextRound() {
@@ -157,6 +165,7 @@ export default function App() {
       {showSettings && (
         <SettingsModal
           wallet={wallet}
+          allTimeHistory={allTimeHistory}
           onSave={handleResetWallet}
           onCancel={() => setShowSettings(false)}
         />
