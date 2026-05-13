@@ -4,12 +4,12 @@ const RANK_DISPLAY = {
   '10': '10', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A', 'JK': '★'
 }
 
-export default function Card({ card, selected, onClick, small, faceDown }) {
+export default function Card({ card, selected, dragging, onClick, onPointerDown, small, faceDown }) {
   if (!card) return <div className={`card card-placeholder${small ? ' card-sm' : ''}`} />
 
   if (faceDown) {
     return (
-      <div className={`card card-back${small ? ' card-sm' : ''}`} onClick={onClick}>
+      <div className={`card card-back${small ? ' card-sm' : ''}`} onClick={onClick} onPointerDown={onPointerDown}>
         <div className="card-back-pattern" />
       </div>
     )
@@ -23,9 +23,10 @@ export default function Card({ card, selected, onClick, small, faceDown }) {
 
   return (
     <div
-      className={`card${small ? ' card-sm' : ''}${selected ? ' card-selected' : ''}${onClick ? ' card-clickable' : ''}${joker ? ' card-joker' : ''}`}
+      className={`card${small ? ' card-sm' : ''}${selected ? ' card-selected' : ''}${dragging ? ' card-dragging' : ''}${onClick || onPointerDown ? ' card-clickable' : ''}${joker ? ' card-joker' : ''}`}
       style={{ '--card-color': color }}
       onClick={onClick}
+      onPointerDown={onPointerDown}
     >
       <div className="card-corner card-corner-tl">
         <span className="card-rank">{rank}</span>

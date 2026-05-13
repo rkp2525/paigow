@@ -1,9 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Card from './Card.jsx'
 import HandLabel from './HandLabel.jsx'
 
-// During SETTING phase: player taps cards to move between their hand areas
-// playerCards: all 7, playerBack/Front: currently assigned
 export default function PlayerSection({
   phase,
   playerCards,
@@ -14,41 +12,102 @@ export default function PlayerSection({
   frontResult,
 }) {
   const [selected, setSelected] = useState(null)
+  // drag: { card, x, y } — card being dragged and current pointer position
+  const [drag, setDrag] = useState(null)
+  const [overZone, setOverZone] = useState(null)
+  // Track whether a significant move happened so tap and drag don't conflict
+  const dragMoved = useRef(false)
+  const dragStart = useRef(null)
 
+  // Attach global pointermove/pointerup while a drag is active
+  useEffect(() => {
+    if (!drag) return
+
+    function onMove(e) {
+      const x = e.clientX
+      const y = e.clientY
+      // Detect meaningful movement
+      if (!dragMoved.current && dragStart.current) {
+        const dx = x - dragStart.current.x
+        const dy = y - dragStart.current.y
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) dragMoved.current = true
+      }
+      setDrag(d => d ? { ...d, x, y } : null)
+
+      // Determine which zone the ghost is over (ghost has pointer-events:none)
+      const el = document.elementFromPoint(x, y)
+      setOverZone(el?.closest('[data-zone]')?.dataset?.zone ?? null)
+    }
+
+    function onUp(e) {
+      if (dragMoved.current && drag) {
+        const el = document.elementFromPoint(e.clientX, e.clientY)
+        const zone = el?.closest('[data-zone]')?.dataset?.zone
+        if (zone) dropCard(drag.card, zone)
+      }
+      setDrag(null)
+      setOverZone(null)
+      dragMoved.current = false
+      dragStart.current = null
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drag, playerBack, playerFront])
+
+  function startDrag(e, card) {
+    if (phase !== 'SETTING') return
+    e.preventDefault()
+    dragMoved.current = false
+    dragStart.current = { x: e.clientX, y: e.clientY }
+    setDrag({ card, x: e.clientX, y: e.clientY })
+  }
+
+  // Move card into a target zone, removing it from wherever it currently is
+  function dropCard(card, targetZone) {
+    let newBack = playerBack.filter(c => c.id !== card.id)
+    let newFront = playerFront.filter(c => c.id !== card.id)
+
+    if (targetZone === 'front' && newFront.length < 2) {
+      newFront = [...newFront, card]
+    } else if (targetZone === 'back' && newBack.length < 5) {
+      newBack = [...newBack, card]
+    }
+    onSetHand(newBack, newFront)
+  }
+
+  // Tap-to-select: first tap selects, second tap on a zone or another card moves/swaps
   function handleCardClick(card) {
     if (phase !== 'SETTING') return
-
-    const inFront = playerFront.some(c => c.id === card.id)
-    const inBack = playerBack.some(c => c.id === card.id)
-    const inUnassigned = !inFront && !inBack
+    if (dragMoved.current) return // was a drag, not a tap
 
     if (selected === null) {
       setSelected(card.id)
       return
     }
-
     if (selected === card.id) {
       setSelected(null)
       return
     }
 
-    // Swap or move logic
-    const srcCard = [...playerCards].find(c => c.id === selected)
+    const srcCard = playerCards.find(c => c.id === selected)
     if (!srcCard) { setSelected(null); return }
-    const destCard = card
 
     const newBack = [...playerBack]
     const newFront = [...playerFront]
-    const unassigned = playerCards.filter(c => !playerBack.some(b => b.id === c.id) && !playerFront.some(f => f.id === c.id))
 
     const srcInFront = newFront.some(c => c.id === srcCard.id)
     const srcInBack = newBack.some(c => c.id === srcCard.id)
     const srcInUnassigned = !srcInFront && !srcInBack
-    const destInFront = newFront.some(c => c.id === destCard.id)
-    const destInBack = newBack.some(c => c.id === destCard.id)
+    const destInFront = newFront.some(c => c.id === card.id)
+    const destInBack = newBack.some(c => c.id === card.id)
     const destInUnassigned = !destInFront && !destInBack
 
-    // Swap the two cards' positions
     function replaceIn(arr, oldCard, newCard) {
       return arr.map(c => c.id === oldCard.id ? newCard : c)
     }
@@ -57,30 +116,29 @@ export default function PlayerSection({
     let resultFront = newFront
 
     if (srcInFront && destInBack) {
-      resultFront = replaceIn(newFront, srcCard, destCard)
-      resultBack = replaceIn(newBack, destCard, srcCard)
+      resultFront = replaceIn(newFront, srcCard, card)
+      resultBack = replaceIn(newBack, card, srcCard)
     } else if (srcInBack && destInFront) {
-      resultBack = replaceIn(newBack, srcCard, destCard)
-      resultFront = replaceIn(newFront, destCard, srcCard)
+      resultBack = replaceIn(newBack, srcCard, card)
+      resultFront = replaceIn(newFront, card, srcCard)
     } else if (srcInFront && destInUnassigned) {
-      resultFront = replaceIn(newFront, srcCard, destCard)
+      resultFront = replaceIn(newFront, srcCard, card)
     } else if (srcInBack && destInUnassigned) {
-      resultBack = replaceIn(newBack, srcCard, destCard)
+      resultBack = replaceIn(newBack, srcCard, card)
     } else if (srcInUnassigned && destInFront) {
-      resultFront = replaceIn(newFront, destCard, srcCard)
+      resultFront = replaceIn(newFront, card, srcCard)
     } else if (srcInUnassigned && destInBack) {
-      resultBack = replaceIn(newBack, destCard, srcCard)
+      resultBack = replaceIn(newBack, card, srcCard)
     } else if (srcInFront && destInFront) {
-      // swap within front (no-op visually but reorder)
       const fi = newFront.findIndex(c => c.id === srcCard.id)
-      const fj = newFront.findIndex(c => c.id === destCard.id)
-      resultFront = [...newFront]
-      ;[resultFront[fi], resultFront[fj]] = [resultFront[fj], resultFront[fi]]
+      const fj = newFront.findIndex(c => c.id === card.id)
+      resultFront = [...newFront];
+      [resultFront[fi], resultFront[fj]] = [resultFront[fj], resultFront[fi]]
     } else if (srcInBack && destInBack) {
       const bi = newBack.findIndex(c => c.id === srcCard.id)
-      const bj = newBack.findIndex(c => c.id === destCard.id)
-      resultBack = [...newBack]
-      ;[resultBack[bi], resultBack[bj]] = [resultBack[bj], resultBack[bi]]
+      const bj = newBack.findIndex(c => c.id === card.id)
+      resultBack = [...newBack];
+      [resultBack[bi], resultBack[bj]] = [resultBack[bj], resultBack[bi]]
     }
 
     setSelected(null)
@@ -98,17 +156,12 @@ export default function PlayerSection({
     let newBack = [...playerBack]
     let newFront = [...playerFront]
 
-    if (zone === 'front' && !inFront) {
-      if (newFront.length < 2) {
-        // Move from back or unassigned to front
-        newFront = [...newFront, srcCard]
-        if (inBack) newBack = newBack.filter(c => c.id !== srcCard.id)
-      }
-    } else if (zone === 'back' && !inBack) {
-      if (newBack.length < 5) {
-        newBack = [...newBack, srcCard]
-        if (inFront) newFront = newFront.filter(c => c.id !== srcCard.id)
-      }
+    if (zone === 'front' && !inFront && newFront.length < 2) {
+      newFront = [...newFront, srcCard]
+      if (inBack) newBack = newBack.filter(c => c.id !== srcCard.id)
+    } else if (zone === 'back' && !inBack && newBack.length < 5) {
+      newBack = [...newBack, srcCard]
+      if (inFront) newFront = newFront.filter(c => c.id !== srcCard.id)
     }
 
     setSelected(null)
@@ -118,16 +171,19 @@ export default function PlayerSection({
   const unassigned = playerCards.filter(
     c => !playerBack.some(b => b.id === c.id) && !playerFront.some(f => f.id === c.id)
   )
-
   const showResult = phase === 'RESULT'
+  const draggingId = drag?.card?.id
 
   return (
     <div className="player-section">
       <div className="section-title">Your Hand</div>
 
-      {/* Front hand (2-card) */}
+      {/* Front hand drop zone */}
       <div
-        className={`hand-group hand-drop-zone${playerFront.length < 2 && phase === 'SETTING' ? ' drop-zone-active' : ''}`}
+        data-zone="front"
+        className={`hand-group hand-drop-zone${
+          phase === 'SETTING' && playerFront.length < 2 ? ' drop-zone-active' : ''
+        }${overZone === 'front' ? ' drop-zone-hover' : ''}`}
         onClick={() => handleZoneClick('front')}
       >
         <div className="hand-sublabel">
@@ -140,7 +196,9 @@ export default function PlayerSection({
               key={c.id}
               card={c}
               selected={selected === c.id}
-              onClick={(e) => { e.stopPropagation(); handleCardClick(c) }}
+              dragging={draggingId === c.id}
+              onPointerDown={e => startDrag(e, c)}
+              onClick={e => { e.stopPropagation(); handleCardClick(c) }}
             />
           ))}
           {Array(Math.max(0, 2 - playerFront.length)).fill(null).map((_, i) => (
@@ -152,9 +210,12 @@ export default function PlayerSection({
         )}
       </div>
 
-      {/* Back hand (5-card) */}
+      {/* Back hand drop zone */}
       <div
-        className={`hand-group hand-drop-zone${playerBack.length < 5 && phase === 'SETTING' ? ' drop-zone-active' : ''}`}
+        data-zone="back"
+        className={`hand-group hand-drop-zone${
+          phase === 'SETTING' && playerBack.length < 5 ? ' drop-zone-active' : ''
+        }${overZone === 'back' ? ' drop-zone-hover' : ''}`}
         onClick={() => handleZoneClick('back')}
       >
         <div className="hand-sublabel">
@@ -167,7 +228,9 @@ export default function PlayerSection({
               key={c.id}
               card={c}
               selected={selected === c.id}
-              onClick={(e) => { e.stopPropagation(); handleCardClick(c) }}
+              dragging={draggingId === c.id}
+              onPointerDown={e => startDrag(e, c)}
+              onClick={e => { e.stopPropagation(); handleCardClick(c) }}
             />
           ))}
           {Array(Math.max(0, 5 - playerBack.length)).fill(null).map((_, i) => (
@@ -181,18 +244,33 @@ export default function PlayerSection({
 
       {/* Unassigned cards */}
       {phase === 'SETTING' && unassigned.length > 0 && (
-        <div className="hand-group unassigned-group">
-          <div className="hand-sublabel">Tap a card to select, then tap a hand zone</div>
+        <div
+          data-zone="unassigned"
+          className="hand-group unassigned-group"
+        >
+          <div className="hand-sublabel">Drag or tap a card to place it</div>
           <div className="card-row">
             {unassigned.map(c => (
               <Card
                 key={c.id}
                 card={c}
                 selected={selected === c.id}
+                dragging={draggingId === c.id}
+                onPointerDown={e => startDrag(e, c)}
                 onClick={() => handleCardClick(c)}
               />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Drag ghost — follows pointer, pointer-events:none so zones remain hittable */}
+      {drag && dragMoved.current && (
+        <div
+          className="card-ghost"
+          style={{ left: drag.x, top: drag.y }}
+        >
+          <Card card={drag.card} />
         </div>
       )}
     </div>

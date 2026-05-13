@@ -36,7 +36,22 @@ export default function App() {
   }
 
   function handleSetHand(back, front) {
-    updateState(prev => setPlayerHand(prev, back, front))
+    updateState(prev => {
+      const assignedIds = new Set([...back.map(c => c.id), ...front.map(c => c.id)])
+      const remaining = prev.playerCards.filter(c => !assignedIds.has(c.id))
+
+      let resolvedBack = back
+      let resolvedFront = front
+
+      // Auto-fill the other hand with whatever's left once one hand is complete
+      if (front.length === 2 && back.length < 5) {
+        resolvedBack = [...back, ...remaining]
+      } else if (back.length === 5 && front.length < 2) {
+        resolvedFront = [...front, ...remaining]
+      }
+
+      return setPlayerHand(prev, resolvedBack, resolvedFront)
+    })
   }
 
   function handleSetByHouseWay() {
