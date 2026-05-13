@@ -54,8 +54,12 @@ function resolveJoker(cards) {
   for (const s of concreteSuits) suitCounts[s] = (suitCounts[s] || 0) + 1
   const flushSuit = Object.keys(suitCounts).find(s => suitCounts[s] >= 4)
   if (flushSuit) {
-    // Joker completes the flush — pick the highest rank not already in flush cards
-    // For simplicity, treat joker as Ace of flush suit (highest value)
+    // Check if joker can complete a straight flush (ranks higher than plain flush)
+    const sfRank = bestStraightWithJoker(concreteRanks)
+    if (sfRank !== null) {
+      return { ranks: [sfRank, ...concreteRanks].sort((a, b) => b - a), suits: [...concreteSuits, flushSuit], jokerUsedAs: sfRank, jokerSuit: flushSuit }
+    }
+    // Joker completes a plain flush as Ace
     return { ranks: [14, ...concreteRanks].sort((a, b) => b - a), suits: [...concreteSuits, flushSuit], jokerUsedAs: 14, jokerSuit: flushSuit }
   }
 

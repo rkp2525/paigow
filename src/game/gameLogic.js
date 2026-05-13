@@ -73,7 +73,7 @@ export function resolveRound(state) {
   const isAceHighPaiGow = dealerBackEval.rank === HR.HIGH_CARD && dealerBackEval.tiebreakers[0] === 14
 
   if (isAceHighPaiGow) {
-    const entry = { outcome: 'PUSH', bet, wallet }
+    const entry = { outcome: 'PUSH', bet, walletAfter: wallet }
     return {
       ...state,
       phase: PHASE.RESULT,

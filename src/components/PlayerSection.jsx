@@ -34,6 +34,7 @@ export default function PlayerSection({
 
     // Swap or move logic
     const srcCard = [...playerCards].find(c => c.id === selected)
+    if (!srcCard) { setSelected(null); return }
     const destCard = card
 
     const newBack = [...playerBack]

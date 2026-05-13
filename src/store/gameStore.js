@@ -29,7 +29,11 @@ export function saveSession(state) {
 }
 
 export function clearSession() {
-  localStorage.removeItem(STORAGE_KEY)
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // localStorage unavailable — silently continue
+  }
 }
 
 export function initState(walletOverride) {

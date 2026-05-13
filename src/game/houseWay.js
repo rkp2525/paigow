@@ -46,11 +46,12 @@ function analyzeHand(sorted) {
   const pairs = Object.entries(rankCounts).filter(([, c]) => c >= 2).map(([r]) => r)
     .sort((a, b) => rankValStr(b) - rankValStr(a))
 
-  const fiveAces = rankCounts['A'] >= 4 && hasJoker
+  // Five Aces requires exactly 4 natural aces + joker (joker already added 1 to count above)
+  const fiveAces = rankCounts['A'] >= 5 && hasJoker
 
-  // Detect straights (need 5 consecutive ranks among the 7 cards)
-  const allRankVals = sorted.map(c => isJoker(c) ? 14 : rv(c))
-  const straight = findBestStraight(allRankVals, hasJoker)
+  // Detect straights using only natural card ranks; joker fills one gap via n=1
+  const naturalRankVals = sorted.filter(c => !isJoker(c)).map(c => rv(c))
+  const straight = findBestStraight(naturalRankVals, hasJoker)
 
   // Detect flushes
   const flush = findBestFlush(sorted)
@@ -64,8 +65,9 @@ function rankValStr(r) {
 }
 
 function findBestStraight(rankVals, hasJoker) {
+  // rankVals contains only natural card ranks; joker is the wildcard via n=1
   const unique = [...new Set(rankVals)].sort((a, b) => b - a)
-  const n = hasJoker ? 1 : 0 // joker can fill one gap
+  const n = hasJoker ? 1 : 0
 
   // Try all windows of 5
   for (let high = 14; high >= 6; high--) {
@@ -232,8 +234,8 @@ function bestSFCombo(suitCards, all7) {
 
 function handleFourOfAKind(sorted, quadRank) {
   const quads = sorted.filter(c => c.rank === quadRank || (isJoker(c) && quadRank === 'A'))
-  const others = sorted.filter(c => c.rank !== quadRank && !isJoker(c))
-    .sort((a, b) => rv(b) - rv(a))
+  // others = everything not claimed by quads (includes joker when quadRank !== 'A')
+  const others = sorted.filter(c => !quads.includes(c)).sort((a, b) => rv(b) - rv(a))
 
   const qv = rankValStr(quadRank)
 
@@ -385,7 +387,7 @@ function buildStraight5(sorted, high, hasJoker) {
 }
 
 function handleTrips(sorted, tripRank) {
-  const tripCards = sorted.filter(c => c.rank === tripRank).slice(0, 3)
+  const tripCards = sorted.filter(c => c.rank === tripRank || (isJoker(c) && tripRank === 'A')).slice(0, 3)
   const others = sorted.filter(c => !tripCards.includes(c)).sort((a, b) => rv(b) - rv(a))
 
   // Aces: split one ace to front
@@ -471,9 +473,9 @@ function handleOnePair(sorted, pairRank) {
 }
 
 function handleNoPair(sorted) {
-  // Back: 5 highest; Front: 2nd and 3rd highest (i.e., remaining 2 best cards)
-  const back = sorted.slice(0, 5)
-  const front = sorted.slice(5, 7)
+  // House way: 2nd and 3rd highest in front, highest + 4th-7th in back
+  const back = [sorted[0], sorted[3], sorted[4], sorted[5], sorted[6]]
+  const front = [sorted[1], sorted[2]]
   return { back, front }
 }
 
