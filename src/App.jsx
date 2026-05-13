@@ -71,10 +71,7 @@ export default function App() {
   }
 
   function handleResetWallet(newWallet) {
-    updateState(prev => ({
-      ...initState(newWallet),
-      handHistory: prev.handHistory,
-    }))
+    updateState(() => initState(newWallet))
     setShowSettings(false)
   }
 
