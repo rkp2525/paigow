@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DEFAULT_WALLET, MIN_BET } from '../game/gameLogic.js'
+import { DEFAULT_WALLET, MIN_BET, SIDE_BET_AMOUNT } from '../game/gameLogic.js'
 
 export default function SettingsModal({ wallet, allTimeHistory, onSave, onCancel }) {
   const [value, setValue] = useState(String(wallet))
@@ -15,6 +15,21 @@ export default function SettingsModal({ wallet, allTimeHistory, onSave, onCancel
   const pushes = allTimeHistory.filter(h => h.outcome === 'PUSH').length
   const total = wins + losses + pushes
 
+  // Side bet stats
+  function sideBetStats(wonKey, placedKey, multiplierKey) {
+    const qualified = allTimeHistory.filter(h => h[wonKey]).length
+    const placed = allTimeHistory.filter(h => h[placedKey])
+    const placedWon = placed.filter(h => h[wonKey])
+    const netGain = placed.reduce((sum, h) => {
+      if (h[wonKey]) return sum + SIDE_BET_AMOUNT * (h[multiplierKey] - 1)
+      return sum - SIDE_BET_AMOUNT
+    }, 0)
+    return { qualified, total, placedCount: placed.length, placedWon: placedWon.length, netGain }
+  }
+
+  const pgStats = sideBetStats('paiGowSideWon', 'paiGowSidePlaced', 'paiGowSideMultiplier')
+  const ftStats = sideBetStats('fortuneSideWon', 'fortuneSidePlaced', 'fortuneSideMultiplier')
+
   return (
     <div className="modal-backdrop" onClick={onCancel}>
       <div className="modal" onClick={e => e.stopPropagation()}>
@@ -29,6 +44,15 @@ export default function SettingsModal({ wallet, allTimeHistory, onSave, onCancel
             </div>
           </div>
         )}
+
+        {total > 0 && (pgStats.qualified > 0 || pgStats.placedCount > 0 || ftStats.qualified > 0 || ftStats.placedCount > 0) && (
+          <div className="side-bet-stats">
+            <div className="alltime-title">Side Bet History</div>
+            <SideBetStatRow label="Pai Gow" stats={pgStats} />
+            <SideBetStatRow label="Fortune" stats={ftStats} />
+          </div>
+        )}
+
         <h2>Reset Wallet</h2>
         <p>Set your starting balance:</p>
         <div className="modal-presets">
@@ -52,6 +76,23 @@ export default function SettingsModal({ wallet, allTimeHistory, onSave, onCancel
           <button className="btn-confirm" onClick={handleSave}>Set Balance</button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function SideBetStatRow({ label, stats }) {
+  const { qualified, total, placedCount, placedWon, netGain } = stats
+  if (total === 0) return null
+  const qualRate = total > 0 ? Math.round(100 * qualified / total) : 0
+  return (
+    <div className="sbs-row">
+      <span className="sbs-label">{label}</span>
+      <span className="sbs-qual">Qualified {qualified}/{total} ({qualRate}%)</span>
+      {placedCount > 0 && (
+        <span className={`sbs-net ${netGain >= 0 ? 'sbs-net-pos' : 'sbs-net-neg'}`}>
+          Bet {placedCount}×, won {placedWon} — net {netGain >= 0 ? '+' : ''}${netGain}
+        </span>
+      )}
     </div>
   )
 }
