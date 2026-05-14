@@ -94,7 +94,7 @@ export default function App() {
 
   const { phase, wallet, bet, playerCards, playerBack, playerFront,
     dealerBack, dealerFront, outcome, isAceHighPaiGow, isFoul,
-    foulBackName, foulFrontName, backResult, frontResult, handHistory } = state
+    foulBackName, foulFrontName, backResult, frontResult, coachingHint, handHistory } = state
 
   const playerHandComplete = playerBack.length === 5 && playerFront.length === 2
   const dealerRevealed = phase === 'SETTING' || phase === 'RESULT'
@@ -170,6 +170,7 @@ export default function App() {
           isFoul={isFoul}
           foulBackName={foulBackName}
           foulFrontName={foulFrontName}
+          coachingHint={coachingHint}
           onNext={handleNextRound}
         />
       )}

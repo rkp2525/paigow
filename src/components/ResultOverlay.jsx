@@ -1,4 +1,4 @@
-export default function ResultOverlay({ outcome, bet, isAceHighPaiGow, isFoul, foulBackName, foulFrontName, onNext }) {
+export default function ResultOverlay({ outcome, bet, isAceHighPaiGow, isFoul, foulBackName, foulFrontName, coachingHint, onNext }) {
   const config = {
     WIN:  { label: 'You Win!',  cls: 'result-win',  emoji: '🎉' },
     PUSH: { label: 'Push',     cls: 'result-push', emoji: '🤝' },
@@ -20,6 +20,17 @@ export default function ResultOverlay({ outcome, bet, isAceHighPaiGow, isFoul, f
         )}
         {isAceHighPaiGow && (
           <div className="result-note">Dealer Ace-High Pai Gow — Table Push</div>
+        )}
+        {coachingHint && (
+          <div className="coaching-hint">
+            <div className="coaching-title">
+              Could have {coachingHint.bestOutcome === 'WIN' ? 'won' : 'pushed'}
+            </div>
+            <div className="coaching-hands">
+              <span className="coaching-hand">Back: {coachingHint.backName}</span>
+              <span className="coaching-hand">Front: {coachingHint.frontName}</span>
+            </div>
+          </div>
         )}
         <button className="btn-next" onClick={onNext}>Next Hand</button>
       </div>
