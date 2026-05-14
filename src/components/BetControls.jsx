@@ -15,7 +15,7 @@ export default function BetControls({ bet, wallet, paiGowSideBet, fortuneSideBet
 
   const sideTotal = (paiGowSideBet ? SIDE_BET_AMOUNT : 0) + (fortuneSideBet ? SIDE_BET_AMOUNT : 0)
   const canDeal = bet >= MIN_BET && (bet + sideTotal) <= wallet
-  const canAffordSide = wallet >= bet + SIDE_BET_AMOUNT
+  const canAffordSide = wallet >= bet + sideTotal + SIDE_BET_AMOUNT
 
   return (
     <div className="bet-controls">
