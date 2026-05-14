@@ -31,6 +31,7 @@ export function createInitialState(wallet = DEFAULT_WALLET) {
     foulFrontName: null,
     backResult: null,    // 'WIN' | 'TIE' | 'LOSS' (player vs dealer back)
     frontResult: null,
+    coachingHint: null,  // { bestOutcome, backName, frontName } when player could have done better
     handHistory: [],     // [{outcome, bet, wallet}]
   }
 }
@@ -88,6 +89,7 @@ export function resolveRound(state) {
       isAceHighPaiGow: false,
       backResult: 'LOSS',
       frontResult: 'LOSS',
+      coachingHint: findCoachingHint(state.playerCards, dealerBack, dealerFront, 'LOSS'),
       handHistory: [entry, ...state.handHistory].slice(0, 50),
     }
   }
@@ -105,6 +107,7 @@ export function resolveRound(state) {
       isAceHighPaiGow: true,
       backResult: 'TIE',
       frontResult: 'TIE',
+      coachingHint: null,
       handHistory: [entry, ...state.handHistory].slice(0, 50),
     }
   }
@@ -142,6 +145,7 @@ export function resolveRound(state) {
     isAceHighPaiGow: false,
     backResult,
     frontResult,
+    coachingHint: findCoachingHint(state.playerCards, dealerBack, dealerFront, outcome),
     handHistory: [entry, ...state.handHistory].slice(0, 50),
   }
 }
@@ -162,6 +166,47 @@ export function nextRound(state) {
     foulFrontName: null,
     backResult: null,
     frontResult: null,
+    coachingHint: null,
     isAceHighPaiGow: false,
   }
+}
+
+const OUTCOME_RANK = { WIN: 2, PUSH: 1, LOSS: 0 }
+
+// Enumerate all C(7,2)=21 splits and return the best achievable outcome
+// against the dealer's already-set hands. Returns null if no split beats
+// actualOutcome (i.e. the player already played optimally or equally well).
+export function findCoachingHint(playerCards, dealerBack, dealerFront, actualOutcome) {
+  const dealerBackEval = evaluate5(dealerBack)
+  const dealerFrontEval = evaluate2(dealerFront)
+  const n = playerCards.length
+  let best = null
+
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const front = [playerCards[i], playerCards[j]]
+      const back = playerCards.filter((_, k) => k !== i && k !== j)
+
+      const backEval = evaluate5(back)
+      const frontEval = evaluate2(front)
+      if (compareHands(backEval, frontEval) < 0) continue // foul — skip
+
+      const backCmp = compareHands(backEval, dealerBackEval)
+      const frontCmp = compareHands(frontEval, dealerFrontEval)
+
+      let outcome
+      if (backCmp > 0 && frontCmp > 0) outcome = 'WIN'
+      else if (backCmp <= 0 && frontCmp <= 0) outcome = 'LOSS'
+      else outcome = 'PUSH'
+
+      if (
+        OUTCOME_RANK[outcome] > OUTCOME_RANK[actualOutcome] &&
+        (best === null || OUTCOME_RANK[outcome] > OUTCOME_RANK[best.bestOutcome])
+      ) {
+        best = { bestOutcome: outcome, backName: backEval.name, frontName: frontEval.name }
+      }
+    }
+  }
+
+  return best
 }
