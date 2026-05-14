@@ -67,14 +67,15 @@ export default function ResultOverlay({
 function SideBetResult({ label, placed, result, qualifier }) {
   if (!placed && !result) return null
   const won = !!result
-  const net = won ? `+$${SIDE_BET_AMOUNT * result.multiplier}` : placed ? `-$${SIDE_BET_AMOUNT}` : null
+  // After the early return, placed || result is guaranteed.
+  // When !won, result is null so placed must be true — net is always defined.
+  const netLabel = placed ? (won ? `+$${SIDE_BET_AMOUNT * result.multiplier}` : `-$${SIDE_BET_AMOUNT}`) : null
 
   return (
     <div className={`side-bet-result ${won ? 'sbr-win' : placed ? 'sbr-loss' : 'sbr-ghost'}`}>
       <span className="sbr-label">{label}</span>
       {qualifier && <span className="sbr-qualifier">{qualifier} ({result.multiplier}:1)</span>}
-      {net && <span className="sbr-net">{net}</span>}
-      {!won && !placed && <span className="sbr-note">would have lost</span>}
+      {netLabel && <span className="sbr-net">{netLabel}</span>}
     </div>
   )
 }
