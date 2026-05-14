@@ -410,6 +410,32 @@ html, body, #root {
 .chip-active { background: var(--gold) !important; color: #000; }
 .chip:disabled { opacity: 0.3; cursor: not-allowed; }
 
+.side-bet-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+}
+.btn-side-bet {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(201,162,39,0.4);
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-side-bet:hover:not(:disabled) { background: rgba(201,162,39,0.15); }
+.btn-side-bet.side-bet-active {
+  background: rgba(201,162,39,0.22);
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+.btn-side-bet:disabled { opacity: 0.3; cursor: not-allowed; }
+
 .btn-deal {
   width: 100%;
   max-width: 280px;
@@ -519,6 +545,53 @@ html, body, #root {
 
 .result-detail { font-size: 22px; font-weight: 700; opacity: 0.9; }
 .result-note { font-size: 13px; opacity: 0.7; max-width: 220px; text-align: center; }
+
+/* ===== SIDE BET RESULTS (result overlay) ===== */
+.side-bet-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 240px;
+}
+.side-bet-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+.sbr-win  { background: rgba(34,197,94,0.15);  border: 1px solid rgba(34,197,94,0.35); }
+.sbr-loss { background: rgba(239,68,68,0.1);   border: 1px solid rgba(239,68,68,0.25); }
+.sbr-ghost{ background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); }
+.sbr-label { font-weight: 700; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; }
+.sbr-qualifier { opacity: 0.85; }
+.sbr-net { font-weight: 700; font-size: 14px; color: var(--win-color); }
+.sbr-loss .sbr-net { color: var(--loss-color); }
+.sbr-note { opacity: 0.45; font-size: 11px; }
+
+/* ===== SIDE BET STATS (settings modal) ===== */
+.side-bet-stats {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(201,162,39,0.4);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sbs-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sbs-label { font-weight: 700; font-size: 13px; }
+.sbs-qual  { font-size: 12px; opacity: 0.65; }
+.sbs-net   { font-size: 12px; opacity: 0.8; }
+.sbs-net-pos { color: var(--win-color); }
+.sbs-net-neg { color: var(--loss-color); }
 
 .coaching-hint {
   background: rgba(255,255,255,0.08);

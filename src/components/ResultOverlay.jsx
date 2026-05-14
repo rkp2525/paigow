@@ -1,10 +1,18 @@
-export default function ResultOverlay({ outcome, bet, isAceHighPaiGow, isFoul, foulBackName, foulFrontName, coachingHint, onNext }) {
+import { SIDE_BET_AMOUNT } from '../game/gameLogic.js'
+
+export default function ResultOverlay({
+  outcome, bet, isAceHighPaiGow, isFoul, foulBackName, foulFrontName,
+  coachingHint, paiGowSideBet, fortuneSideBet, paiGowSideResult, fortuneSideResult,
+  onNext,
+}) {
   const config = {
     WIN:  { label: 'You Win!',  cls: 'result-win',  emoji: '🎉' },
     PUSH: { label: 'Push',     cls: 'result-push', emoji: '🤝' },
     LOSS: { label: 'You Lose', cls: 'result-loss',  emoji: '😞' },
   }
   const { label, cls, emoji } = config[outcome] ?? config.PUSH
+
+  const showSideBets = paiGowSideBet || fortuneSideBet || paiGowSideResult || fortuneSideResult
 
   return (
     <div className={`result-overlay ${cls}`}>
@@ -32,8 +40,41 @@ export default function ResultOverlay({ outcome, bet, isAceHighPaiGow, isFoul, f
             </div>
           </div>
         )}
+
+        {showSideBets && (
+          <div className="side-bet-results">
+            <SideBetResult
+              label="Pai Gow Bet"
+              placed={paiGowSideBet}
+              result={paiGowSideResult}
+              qualifier={paiGowSideResult ? paiGowSideResult.highCardName : null}
+            />
+            <SideBetResult
+              label="Fortune Bet"
+              placed={fortuneSideBet}
+              result={fortuneSideResult}
+              qualifier={fortuneSideResult ? fortuneSideResult.handName : null}
+            />
+          </div>
+        )}
+
         <button className="btn-next" onClick={onNext}>Next Hand</button>
       </div>
+    </div>
+  )
+}
+
+function SideBetResult({ label, placed, result, qualifier }) {
+  if (!placed && !result) return null
+  const won = !!result
+  const net = won ? `+$${SIDE_BET_AMOUNT * result.multiplier}` : placed ? `-$${SIDE_BET_AMOUNT}` : null
+
+  return (
+    <div className={`side-bet-result ${won ? 'sbr-win' : placed ? 'sbr-loss' : 'sbr-ghost'}`}>
+      <span className="sbr-label">{label}</span>
+      {qualifier && <span className="sbr-qualifier">{qualifier} ({result.multiplier}:1)</span>}
+      {net && <span className="sbr-net">{net}</span>}
+      {!won && !placed && <span className="sbr-note">would have lost</span>}
     </div>
   )
 }

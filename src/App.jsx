@@ -37,6 +37,14 @@ export default function App() {
     updateState(prev => ({ ...prev, bet: amount }))
   }
 
+  function handleSideBetToggle(which) {
+    updateState(prev => ({
+      ...prev,
+      paiGowSideBet: which === 'paiGow' ? !prev.paiGowSideBet : prev.paiGowSideBet,
+      fortuneSideBet: which === 'fortune' ? !prev.fortuneSideBet : prev.fortuneSideBet,
+    }))
+  }
+
   function handleSetHand(back, front) {
     updateState(prev => {
       const assignedIds = new Set([...back.map(c => c.id), ...front.map(c => c.id)])
@@ -94,7 +102,9 @@ export default function App() {
 
   const { phase, wallet, bet, playerCards, playerBack, playerFront,
     dealerBack, dealerFront, outcome, isAceHighPaiGow, isFoul,
-    foulBackName, foulFrontName, backResult, frontResult, coachingHint, handHistory } = state
+    foulBackName, foulFrontName, backResult, frontResult, coachingHint,
+    paiGowSideBet, fortuneSideBet, paiGowSideResult, fortuneSideResult,
+    handHistory } = state
 
   const playerHandComplete = playerBack.length === 5 && playerFront.length === 2
   const dealerRevealed = phase === 'SETTING' || phase === 'RESULT'
@@ -127,7 +137,10 @@ export default function App() {
           <BetControls
             bet={bet}
             wallet={wallet}
+            paiGowSideBet={paiGowSideBet}
+            fortuneSideBet={fortuneSideBet}
             onBetChange={handleBetChange}
+            onSideBetToggle={handleSideBetToggle}
             onDeal={handleDeal}
           />
         )}
@@ -171,6 +184,10 @@ export default function App() {
           foulBackName={foulBackName}
           foulFrontName={foulFrontName}
           coachingHint={coachingHint}
+          paiGowSideBet={paiGowSideBet}
+          fortuneSideBet={fortuneSideBet}
+          paiGowSideResult={paiGowSideResult}
+          fortuneSideResult={fortuneSideResult}
           onNext={handleNextRound}
         />
       )}

@@ -1,6 +1,6 @@
-import { makeDeck, shuffle } from './cards.js'
+import { makeDeck, shuffle, isJoker, RANK_VALUE } from './cards.js'
 import { applyHouseWay } from './houseWay.js'
-import { evaluate5, evaluate2, compareHands, HR } from './handEval.js'
+import { evaluate5, evaluate2, compareHands, HR, bestFiveCardHand } from './handEval.js'
 
 export const PHASE = {
   BETTING: 'BETTING',
@@ -11,6 +11,44 @@ export const PHASE = {
 export const DEFAULT_WALLET = 500
 export const MIN_BET = 5
 export const BET_INCREMENT = 5
+export const SIDE_BET_AMOUNT = 5
+
+// Pai Gow Insurance: pays when player's 7 cards form a pai gow (all singletons).
+// Multiplier based on highest card rank.
+const PAI_GOW_PAY = { 14: 3, 13: 5, 12: 7, 11: 15, 10: 25 } // <= 9: 100
+
+// Fortune: pays when player's best 5-card hand from 7 cards is 3-of-a-kind or better.
+const FORTUNE_PAY = {
+  [HR.THREE_KIND]: 3,
+  [HR.STRAIGHT]: 2,
+  [HR.FLUSH]: 4,
+  [HR.FULL_HOUSE]: 5,
+  [HR.FOUR_KIND]: 25,
+  [HR.STRAIGHT_FLUSH]: 50, // royal flush handled separately below (150:1)
+  [HR.FIVE_ACES]: 400,
+}
+
+// Returns { highCardRank, highCardName, multiplier } if player has a pai gow, else null.
+export function evalPaiGowSide(playerCards) {
+  const best = bestFiveCardHand(playerCards)
+  if (best.rank !== HR.HIGH_CARD) return null
+  const highRank = Math.max(...playerCards.map(c => isJoker(c) ? 14 : (RANK_VALUE[c.rank] ?? 0)))
+  const multiplier = PAI_GOW_PAY[highRank] ?? 100
+  const names = { 14: 'Ace', 13: 'King', 12: 'Queen', 11: 'Jack', 10: 'Ten',
+    9: 'Nine', 8: 'Eight', 7: 'Seven', 6: 'Six', 5: 'Five', 4: 'Four', 3: 'Three', 2: 'Two' }
+  return { highCardRank: highRank, highCardName: `${names[highRank] ?? highRank} High`, multiplier }
+}
+
+// Returns { handName, handRank, multiplier } if player's best 5-of-7 is 3-of-a-kind+, else null.
+export function evalFortuneSide(playerCards) {
+  const best = bestFiveCardHand(playerCards)
+  if (best.rank < HR.THREE_KIND) return null
+  let multiplier = FORTUNE_PAY[best.rank] ?? 0
+  // Royal flush (straight flush with ace high) pays 150:1 instead of 50:1
+  if (best.rank === HR.STRAIGHT_FLUSH && best.tiebreakers[0] === 14) multiplier = 150
+  if (!multiplier) return null
+  return { handName: best.name, handRank: best.rank, multiplier }
+}
 
 export function createInitialState(wallet = DEFAULT_WALLET) {
   return {
@@ -18,21 +56,25 @@ export function createInitialState(wallet = DEFAULT_WALLET) {
     wallet,
     bet: MIN_BET,
     deck: [],
-    playerCards: [],     // all 7 player cards
-    playerBack: [],      // player's 5-card back hand (set by player)
-    playerFront: [],     // player's 2-card front hand (set by player)
-    dealerCards: [],     // all 7 dealer cards
-    dealerBack: [],      // dealer's 5-card back hand (set by house way)
-    dealerFront: [],     // dealer's 2-card front hand (set by house way)
-    outcome: null,       // 'WIN' | 'PUSH' | 'LOSS'
+    playerCards: [],        // all 7 player cards
+    playerBack: [],         // player's 5-card back hand (set by player)
+    playerFront: [],        // player's 2-card front hand (set by player)
+    dealerCards: [],        // all 7 dealer cards
+    dealerBack: [],         // dealer's 5-card back hand (set by house way)
+    dealerFront: [],        // dealer's 2-card front hand (set by house way)
+    outcome: null,          // 'WIN' | 'PUSH' | 'LOSS'
     isAceHighPaiGow: false,
     isFoul: false,
     foulBackName: null,
     foulFrontName: null,
-    backResult: null,    // 'WIN' | 'TIE' | 'LOSS' (player vs dealer back)
+    backResult: null,       // 'WIN' | 'TIE' | 'LOSS' (player vs dealer back)
     frontResult: null,
-    coachingHint: null,  // { bestOutcome, backName, frontName } when player could have done better
-    handHistory: [],     // [{outcome, bet, wallet}]
+    coachingHint: null,     // { bestOutcome, backName, frontName } when player could have done better
+    paiGowSideBet: false,   // player is placing the Pai Gow Insurance side bet
+    fortuneSideBet: false,  // player is placing the Fortune side bet
+    paiGowSideResult: null, // { highCardName, multiplier } if qualified, else null
+    fortuneSideResult: null,// { handName, multiplier } if qualified, else null
+    handHistory: [],        // [{outcome, bet, walletAfter, ...side bet stats}]
   }
 }
 
@@ -58,6 +100,9 @@ export function dealRound(state) {
     outcome: null,
     backResult: null,
     frontResult: null,
+    paiGowSideResult: null,
+    fortuneSideResult: null,
+    coachingHint: null,
     isAceHighPaiGow: false,
   }
 }
@@ -72,16 +117,43 @@ export function resolveRound(state) {
     throw new Error('Player hand not fully set')
   }
 
+  // Side bets are always evaluated (shown even when not placed)
+  const paiGowSideResult = evalPaiGowSide(state.playerCards)
+  const fortuneSideResult = evalFortuneSide(state.playerCards)
+
+  function sideNetChange() {
+    let net = 0
+    if (state.paiGowSideBet) {
+      net += paiGowSideResult ? SIDE_BET_AMOUNT * paiGowSideResult.multiplier : -SIDE_BET_AMOUNT
+    }
+    if (state.fortuneSideBet) {
+      net += fortuneSideResult ? SIDE_BET_AMOUNT * fortuneSideResult.multiplier : -SIDE_BET_AMOUNT
+    }
+    return net
+  }
+
+  function mkEntry(outcome, mainWalletChange) {
+    const walletAfter = wallet + mainWalletChange + sideNetChange()
+    return {
+      outcome, bet, walletAfter,
+      paiGowSidePlaced: state.paiGowSideBet,
+      paiGowSideWon: !!paiGowSideResult,
+      paiGowSideMultiplier: paiGowSideResult?.multiplier ?? 0,
+      fortuneSidePlaced: state.fortuneSideBet,
+      fortuneSideWon: !!fortuneSideResult,
+      fortuneSideMultiplier: fortuneSideResult?.multiplier ?? 0,
+    }
+  }
+
   // Foul check: player's back hand must be at least as strong as front hand
   const pBackEval = evaluate5(playerBack)
   const pFrontEval = evaluate2(playerFront)
   if (compareHands(pBackEval, pFrontEval) < 0) {
-    const newWallet = wallet - bet
-    const entry = { outcome: 'LOSS', bet, walletAfter: newWallet }
+    const entry = mkEntry('LOSS', -bet)
     return {
       ...state,
       phase: PHASE.RESULT,
-      wallet: newWallet,
+      wallet: entry.walletAfter,
       outcome: 'LOSS',
       isFoul: true,
       foulBackName: pBackEval.name,
@@ -89,62 +161,61 @@ export function resolveRound(state) {
       isAceHighPaiGow: false,
       backResult: 'LOSS',
       frontResult: 'LOSS',
+      paiGowSideResult,
+      fortuneSideResult,
       coachingHint: findCoachingHint(state.playerCards, dealerBack, dealerFront, 'LOSS'),
       handHistory: [entry, ...state.handHistory].slice(0, 50),
     }
   }
 
-  // Ace-high pai gow check on dealer's back hand
+  // Ace-high pai gow check on dealer's back hand (base game: automatic push)
   const dealerBackEval = evaluate5(dealerBack)
   const isAceHighPaiGow = dealerBackEval.rank === HR.HIGH_CARD && dealerBackEval.tiebreakers[0] === 14
 
   if (isAceHighPaiGow) {
-    const entry = { outcome: 'PUSH', bet, walletAfter: wallet }
+    const entry = mkEntry('PUSH', 0)
     return {
       ...state,
       phase: PHASE.RESULT,
+      wallet: entry.walletAfter,
       outcome: 'PUSH',
       isAceHighPaiGow: true,
       backResult: 'TIE',
       frontResult: 'TIE',
+      paiGowSideResult,
+      fortuneSideResult,
       coachingHint: null,
       handHistory: [entry, ...state.handHistory].slice(0, 50),
     }
   }
 
   const dFrontEval = evaluate2(dealerFront)
-
   const backCmp = compareHands(pBackEval, dealerBackEval)
   const frontCmp = compareHands(pFrontEval, dFrontEval)
 
   const playerWinsBack = backCmp > 0
   const playerWinsFront = frontCmp > 0
-  // Ties go to dealer
   const backResult = backCmp > 0 ? 'WIN' : backCmp === 0 ? 'TIE' : 'LOSS'
   const frontResult = frontCmp > 0 ? 'WIN' : frontCmp === 0 ? 'TIE' : 'LOSS'
 
   let outcome
-  let newWallet = wallet
-  if (playerWinsBack && playerWinsFront) {
-    outcome = 'WIN'
-    newWallet = wallet + bet
-  } else if (!playerWinsBack && !playerWinsFront) {
-    outcome = 'LOSS'
-    newWallet = wallet - bet
-  } else {
-    outcome = 'PUSH'
-  }
+  let mainChange = 0
+  if (playerWinsBack && playerWinsFront) { outcome = 'WIN'; mainChange = bet }
+  else if (!playerWinsBack && !playerWinsFront) { outcome = 'LOSS'; mainChange = -bet }
+  else { outcome = 'PUSH' }
 
-  const entry = { outcome, bet, walletAfter: newWallet }
+  const entry = mkEntry(outcome, mainChange)
   return {
     ...state,
     phase: PHASE.RESULT,
-    wallet: newWallet,
+    wallet: entry.walletAfter,
     outcome,
     isFoul: false,
     isAceHighPaiGow: false,
     backResult,
     frontResult,
+    paiGowSideResult,
+    fortuneSideResult,
     coachingHint: findCoachingHint(state.playerCards, dealerBack, dealerFront, outcome),
     handHistory: [entry, ...state.handHistory].slice(0, 50),
   }
@@ -166,8 +237,11 @@ export function nextRound(state) {
     foulFrontName: null,
     backResult: null,
     frontResult: null,
+    paiGowSideResult: null,
+    fortuneSideResult: null,
     coachingHint: null,
     isAceHighPaiGow: false,
+    // paiGowSideBet and fortuneSideBet are intentionally preserved
   }
 }
 
