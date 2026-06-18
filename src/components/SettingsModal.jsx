@@ -1,5 +1,24 @@
 import { useState } from 'react'
 import { DEFAULT_WALLET, MIN_BET, SIDE_BET_AMOUNT } from '../game/gameLogic.js'
+import BankrollGraph from './BankrollGraph.jsx'
+
+function computeWalletBefore(entry) {
+  const mainChange =
+    entry.outcome === 'WIN' ? entry.bet :
+    entry.outcome === 'LOSS' ? -entry.bet : 0
+  let sideChange = 0
+  if (entry.paiGowSidePlaced) {
+    sideChange += entry.paiGowSideWon
+      ? SIDE_BET_AMOUNT * entry.paiGowSideMultiplier
+      : -SIDE_BET_AMOUNT
+  }
+  if (entry.fortuneSidePlaced) {
+    sideChange += entry.fortuneSideWon
+      ? SIDE_BET_AMOUNT * entry.fortuneSideMultiplier
+      : -SIDE_BET_AMOUNT
+  }
+  return entry.walletAfter - mainChange - sideChange
+}
 
 const DECK_COLOR_PRESETS = [
   { name: 'Classic Blue', color: '#2d2d8c' },
@@ -10,8 +29,14 @@ const DECK_COLOR_PRESETS = [
   { name: 'Gold', color: '#b8860b' },
 ]
 
-export default function SettingsModal({ wallet, allTimeHistory, deckColor, onDeckColorChange, onSave, onCancel }) {
+export default function SettingsModal({ wallet, allTimeHistory, handHistory = [], deckColor, onDeckColorChange, onSave, onCancel }) {
   const [value, setValue] = useState(String(wallet))
+
+  // handHistory is newest-first; chart it oldest-first as a running bankroll.
+  const oldestFirst = [...handHistory].reverse()
+  const balances = oldestFirst.length > 0
+    ? [computeWalletBefore(oldestFirst[0]), ...oldestFirst.map(h => h.walletAfter)]
+    : []
 
   function handleSave() {
     const n = parseInt(value, 10)
@@ -53,6 +78,8 @@ export default function SettingsModal({ wallet, allTimeHistory, deckColor, onDec
             </div>
           </div>
         )}
+
+        {balances.length >= 2 && <BankrollGraph balances={balances} />}
 
         {total > 0 && (pgStats.qualified > 0 || pgStats.placedCount > 0 || ftStats.qualified > 0 || ftStats.placedCount > 0) && (
           <div className="side-bet-stats">

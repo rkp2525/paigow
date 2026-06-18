@@ -202,6 +202,7 @@ export default function App() {
         <SettingsModal
           wallet={wallet}
           allTimeHistory={allTimeHistory}
+          handHistory={handHistory}
           deckColor={deckColor}
           onDeckColorChange={handleDeckColorChange}
           onSave={handleResetWallet}
