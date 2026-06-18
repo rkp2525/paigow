@@ -20,7 +20,16 @@ function computeWalletBefore(entry) {
   return entry.walletAfter - mainChange - sideChange
 }
 
-export default function SettingsModal({ wallet, allTimeHistory, handHistory = [], onSave, onCancel }) {
+const DECK_COLOR_PRESETS = [
+  { name: 'Classic Blue', color: '#2d2d8c' },
+  { name: 'Crimson', color: '#9c1c2e' },
+  { name: 'Forest', color: '#1f6b3a' },
+  { name: 'Plum', color: '#5e2a7e' },
+  { name: 'Slate', color: '#37474f' },
+  { name: 'Gold', color: '#b8860b' },
+]
+
+export default function SettingsModal({ wallet, allTimeHistory, handHistory = [], deckColor, onDeckColorChange, onSave, onCancel }) {
   const [value, setValue] = useState(String(wallet))
 
   // handHistory is newest-first; chart it oldest-first as a running bankroll.
@@ -79,6 +88,30 @@ export default function SettingsModal({ wallet, allTimeHistory, handHistory = []
             <SideBetStatRow label="Fortune" stats={ftStats} />
           </div>
         )}
+
+        <h2>Deck Color</h2>
+        <p>Pick the color of your card backs:</p>
+        <div className="deck-color-swatches">
+          {DECK_COLOR_PRESETS.map(p => (
+            <button
+              key={p.color}
+              type="button"
+              title={p.name}
+              aria-label={p.name}
+              className={`deck-swatch${deckColor?.toLowerCase() === p.color.toLowerCase() ? ' deck-swatch-active' : ''}`}
+              style={{ background: p.color }}
+              onClick={() => onDeckColorChange(p.color)}
+            />
+          ))}
+          <label className="deck-swatch deck-swatch-custom" title="Custom color">
+            <input
+              type="color"
+              value={deckColor || '#2d2d8c'}
+              onChange={e => onDeckColorChange(e.target.value)}
+            />
+            <span>+</span>
+          </label>
+        </div>
 
         <h2>Reset Wallet</h2>
         <p>Set your starting balance:</p>

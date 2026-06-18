@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { PHASE, dealRound, setPlayerHand, resolveRound, nextRound, MIN_BET, BET_INCREMENT } from './game/gameLogic.js'
 import { applyHouseWay } from './game/houseWay.js'
-import { initState, saveSession, appendAllTimeEntry, loadAllTimeHistory } from './store/gameStore.js'
+import { initState, saveSession, appendAllTimeEntry, loadAllTimeHistory, loadDeckColor, saveDeckColor } from './store/gameStore.js'
 import WalletBar from './components/WalletBar.jsx'
 import DealerSection from './components/DealerSection.jsx'
 import PlayerSection from './components/PlayerSection.jsx'
@@ -14,6 +14,7 @@ export default function App() {
   const [state, setState] = useState(() => initState())
   const [showSettings, setShowSettings] = useState(false)
   const [allTimeHistory, setAllTimeHistory] = useState(() => loadAllTimeHistory())
+  const [deckColor, setDeckColor] = useState(() => loadDeckColor())
   const pendingHistoryEntryRef = useRef(null)
 
   // Persist wallet whenever it changes
@@ -100,6 +101,11 @@ export default function App() {
     setShowSettings(false)
   }
 
+  function handleDeckColorChange(color) {
+    setDeckColor(color)
+    saveDeckColor(color)
+  }
+
   const { phase, wallet, bet, playerCards, playerBack, playerFront,
     dealerBack, dealerFront, outcome, isAceHighPaiGow, isFoul,
     foulBackName, foulFrontName, backResult, frontResult, coachingHint,
@@ -114,7 +120,7 @@ export default function App() {
   const showDealerResult = phase === 'RESULT'
 
   return (
-    <div className="app">
+    <div className="app" style={{ '--deck-color': deckColor }}>
       <header className="app-header">
         <div className="app-title">Face Up Pai Gow</div>
         <WalletBar wallet={wallet} handHistory={handHistory} onReset={() => setShowSettings(true)} />
@@ -197,6 +203,8 @@ export default function App() {
           wallet={wallet}
           allTimeHistory={allTimeHistory}
           handHistory={handHistory}
+          deckColor={deckColor}
+          onDeckColorChange={handleDeckColorChange}
           onSave={handleResetWallet}
           onCancel={() => setShowSettings(false)}
         />
