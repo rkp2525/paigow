@@ -2,6 +2,23 @@ import { createInitialState, DEFAULT_WALLET } from '../game/gameLogic.js'
 
 const STORAGE_KEY = 'paigow_session'
 const ALLTIME_KEY = 'paigow_alltime'
+const DECK_COLOR_KEY = 'paigow_deck_color'
+
+export const DEFAULT_DECK_COLOR = '#2d2d8c'
+
+export function loadDeckColor() {
+  try {
+    return localStorage.getItem(DECK_COLOR_KEY) || DEFAULT_DECK_COLOR
+  } catch {
+    return DEFAULT_DECK_COLOR
+  }
+}
+
+export function saveDeckColor(color) {
+  try {
+    localStorage.setItem(DECK_COLOR_KEY, color)
+  } catch {}
+}
 
 export function loadSession() {
   try {
