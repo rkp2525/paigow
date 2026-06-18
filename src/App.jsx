@@ -196,6 +196,7 @@ export default function App() {
         <SettingsModal
           wallet={wallet}
           allTimeHistory={allTimeHistory}
+          handHistory={handHistory}
           onSave={handleResetWallet}
           onCancel={() => setShowSettings(false)}
         />

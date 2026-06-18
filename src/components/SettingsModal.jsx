@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { DEFAULT_WALLET, MIN_BET, SIDE_BET_AMOUNT } from '../game/gameLogic.js'
+import BankrollGraph from './BankrollGraph.jsx'
 
-export default function SettingsModal({ wallet, allTimeHistory, onSave, onCancel }) {
+export default function SettingsModal({ wallet, allTimeHistory, handHistory = [], onSave, onCancel }) {
   const [value, setValue] = useState(String(wallet))
+
+  // handHistory is newest-first; chart it oldest-first as a running bankroll.
+  const balances = [...handHistory].reverse().map(h => h.walletAfter)
 
   function handleSave() {
     const n = parseInt(value, 10)
@@ -44,6 +48,8 @@ export default function SettingsModal({ wallet, allTimeHistory, onSave, onCancel
             </div>
           </div>
         )}
+
+        {balances.length >= 2 && <BankrollGraph balances={balances} />}
 
         {total > 0 && (pgStats.qualified > 0 || pgStats.placedCount > 0 || ftStats.qualified > 0 || ftStats.placedCount > 0) && (
           <div className="side-bet-stats">
