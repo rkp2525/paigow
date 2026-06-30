@@ -1,4 +1,5 @@
 import { SIDE_BET_AMOUNT } from '../game/gameLogic.js'
+import Confetti from './Confetti.jsx'
 
 export default function ResultOverlay({
   outcome, bet, isAceHighPaiGow, isFoul, foulBackName, foulFrontName,
@@ -14,8 +15,14 @@ export default function ResultOverlay({
 
   const showSideBets = paiGowSideBet || fortuneSideBet || paiGowSideResult || fortuneSideResult
 
+  // Celebrate a main-hand win or any side bet the player actually placed and hit.
+  // Side-bet hits (which can pay big) get a heavier burst.
+  const sideBetHit = (paiGowSideBet && paiGowSideResult) || (fortuneSideBet && fortuneSideResult)
+  const celebrate = outcome === 'WIN' || sideBetHit
+
   return (
     <div className={`result-overlay ${cls}`}>
+      {celebrate && <Confetti count={sideBetHit ? 120 : 70} />}
       <div className="result-box">
         <div className="result-emoji">{emoji}</div>
         <div className="result-label">{label}</div>
