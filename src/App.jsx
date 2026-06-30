@@ -103,7 +103,7 @@ export default function App() {
   // listener stays correct without depending on every handler identity.
   useEffect(() => {
     function onKeyDown(e) {
-      if (showSettings) return
+      if (showSettings || showStats) return
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
       const tag = e.target?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return
@@ -120,7 +120,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [phase, playerHandComplete, showSettings])
+  }, [phase, playerHandComplete, showSettings, showStats])
 
   function handleResetWallet(newWallet) {
     updateState(() => initState(newWallet))
