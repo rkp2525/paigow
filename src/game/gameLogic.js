@@ -14,26 +14,29 @@ export const BET_INCREMENT = 5
 export const SIDE_BET_AMOUNT = 5
 
 // Pai Gow Insurance: pays when player's 7 cards form a pai gow (all singletons).
-// Multiplier based on highest card rank.
-const PAI_GOW_PAY = { 14: 3, 13: 5, 12: 7, 11: 15, 10: 25 } // <= 9: 100
+// Multiplier based on highest card rank. A lower high card is rarer and pays more;
+// any pai gow with a 9-high or lower pays the top rate.
+export const PAI_GOW_PAY = { 14: 3, 13: 5, 12: 7, 11: 15, 10: 25 }
+export const PAI_GOW_DEFAULT_PAY = 100 // high card 9 or lower
 
 // Fortune: pays when player's best 5-card hand from 7 cards is 3-of-a-kind or better.
-const FORTUNE_PAY = {
+export const FORTUNE_PAY = {
   [HR.THREE_KIND]: 3,
   [HR.STRAIGHT]: 2,
   [HR.FLUSH]: 4,
   [HR.FULL_HOUSE]: 5,
   [HR.FOUR_KIND]: 25,
-  [HR.STRAIGHT_FLUSH]: 50, // royal flush handled separately below (150:1)
+  [HR.STRAIGHT_FLUSH]: 50, // royal flush handled separately below
   [HR.FIVE_ACES]: 400,
 }
+export const ROYAL_FLUSH_PAY = 150 // ace-high straight flush, instead of 50:1
 
 // Returns { highCardRank, highCardName, multiplier } if player has a pai gow, else null.
 export function evalPaiGowSide(playerCards) {
   const best = bestFiveCardHand(playerCards)
   if (best.rank !== HR.HIGH_CARD) return null
   const highRank = Math.max(...playerCards.map(c => isJoker(c) ? 14 : (RANK_VALUE[c.rank] ?? 0)))
-  const multiplier = PAI_GOW_PAY[highRank] ?? 100
+  const multiplier = PAI_GOW_PAY[highRank] ?? PAI_GOW_DEFAULT_PAY
   const names = { 14: 'Ace', 13: 'King', 12: 'Queen', 11: 'Jack', 10: 'Ten',
     9: 'Nine', 8: 'Eight', 7: 'Seven', 6: 'Six', 5: 'Five', 4: 'Four', 3: 'Three', 2: 'Two' }
   return { highCardRank: highRank, highCardName: `${names[highRank] ?? highRank} High`, multiplier }
@@ -45,7 +48,7 @@ export function evalFortuneSide(playerCards) {
   if (best.rank < HR.THREE_KIND) return null
   let multiplier = FORTUNE_PAY[best.rank] ?? 0
   // Royal flush (straight flush with ace high) pays 150:1 instead of 50:1
-  if (best.rank === HR.STRAIGHT_FLUSH && best.tiebreakers[0] === 14) multiplier = 150
+  if (best.rank === HR.STRAIGHT_FLUSH && best.tiebreakers[0] === 14) multiplier = ROYAL_FLUSH_PAY
   if (!multiplier) return null
   return { handName: best.name, handRank: best.rank, multiplier }
 }

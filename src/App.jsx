@@ -98,6 +98,30 @@ export default function App() {
     updateState(prev => nextRound(prev))
   }
 
+  // Keyboard shortcuts: Space/Enter advances the round (Deal → Confirm → Next),
+  // H sets the house way while setting. Handlers use functional setState, so the
+  // listener stays correct without depending on every handler identity.
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (showSettings) return
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
+      const tag = e.target?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return
+
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault()
+        if (phase === PHASE.BETTING) handleDeal()
+        else if (phase === PHASE.SETTING) { if (playerHandComplete) handleConfirmHand() }
+        else if (phase === PHASE.RESULT) handleNextRound()
+      } else if ((e.key === 'h' || e.key === 'H') && phase === PHASE.SETTING) {
+        e.preventDefault()
+        handleSetByHouseWay()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [phase, playerHandComplete, showSettings])
+
   function handleResetWallet(newWallet) {
     updateState(() => initState(newWallet))
     setShowSettings(false)
@@ -178,13 +202,14 @@ export default function App() {
         {/* Setting phase controls */}
         {phase === 'SETTING' && (
           <div className="setting-controls">
-            <button className="btn-houseway" onClick={handleSetByHouseWay}>
+            <button className="btn-houseway" onClick={handleSetByHouseWay} title="Set house way (H)">
               House Way
             </button>
             <button
               className="btn-confirm-hand"
               onClick={handleConfirmHand}
               disabled={!playerHandComplete}
+              title="Confirm hand (Enter)"
             >
               {playerHandComplete ? 'Confirm Hand' : `Set All Cards (${playerBack.length + playerFront.length}/7)`}
             </button>
