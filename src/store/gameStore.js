@@ -3,8 +3,10 @@ import { createInitialState, DEFAULT_WALLET } from '../game/gameLogic.js'
 const STORAGE_KEY = 'paigow_session'
 const ALLTIME_KEY = 'paigow_alltime'
 const DECK_COLOR_KEY = 'paigow_deck_color'
+const BG_COLOR_KEY = 'paigow_bg_color'
 
 export const DEFAULT_DECK_COLOR = '#2d2d8c'
+export const DEFAULT_BG_COLOR = '#1a5c2a' // matches the --felt default
 
 export function loadDeckColor() {
   try {
@@ -17,6 +19,20 @@ export function loadDeckColor() {
 export function saveDeckColor(color) {
   try {
     localStorage.setItem(DECK_COLOR_KEY, color)
+  } catch {}
+}
+
+export function loadBgColor() {
+  try {
+    return localStorage.getItem(BG_COLOR_KEY) || DEFAULT_BG_COLOR
+  } catch {
+    return DEFAULT_BG_COLOR
+  }
+}
+
+export function saveBgColor(color) {
+  try {
+    localStorage.setItem(BG_COLOR_KEY, color)
   } catch {}
 }
 
