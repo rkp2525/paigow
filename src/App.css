@@ -130,6 +130,98 @@ html, body, #root {
 
 .btn-reset:hover { border-color: var(--gold); color: var(--gold); }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-stats {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  font-size: 16px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.btn-stats:hover { border-color: var(--gold); }
+
+/* ===== STATS DASHBOARD ===== */
+.modal-stats { width: min(420px, 92vw); }
+.stats-subtitle { font-size: 12px; opacity: 0.55; margin-top: -6px; }
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.stat-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(201,162,39,0.4);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stat-card-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+}
+.stat-card-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+.stat-card-pos { color: var(--win-color); }
+.stat-card-neg { color: var(--loss-color); }
+
+.stat-current-streak {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(201,162,39,0.4);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.stat-current-streak-val { font-size: 16px; font-weight: 700; }
+
+.stat-sidebets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stat-sidebet {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(201,162,39,0.4);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stat-sidebet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.stat-sidebet-label { font-weight: 700; font-size: 14px; }
+.stat-sidebet-qual { font-size: 11px; opacity: 0.6; }
+.stat-sidebet-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.85;
+}
+.stat-sidebet-empty { opacity: 0.45; font-style: italic; }
+
 /* ===== GAME AREA ===== */
 .game-area {
   flex: 1;
