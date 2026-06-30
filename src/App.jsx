@@ -8,11 +8,13 @@ import PlayerSection from './components/PlayerSection.jsx'
 import BetControls from './components/BetControls.jsx'
 import ResultOverlay from './components/ResultOverlay.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
+import StatsModal from './components/StatsModal.jsx'
 import './App.css'
 
 export default function App() {
   const [state, setState] = useState(() => initState())
   const [showSettings, setShowSettings] = useState(false)
+  const [showStats, setShowStats] = useState(false)
   const [allTimeHistory, setAllTimeHistory] = useState(() => loadAllTimeHistory())
   const [deckColor, setDeckColor] = useState(() => loadDeckColor())
   const pendingHistoryEntryRef = useRef(null)
@@ -101,7 +103,7 @@ export default function App() {
   // listener stays correct without depending on every handler identity.
   useEffect(() => {
     function onKeyDown(e) {
-      if (showSettings) return
+      if (showSettings || showStats) return
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
       const tag = e.target?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return
@@ -118,7 +120,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [phase, playerHandComplete, showSettings])
+  }, [phase, playerHandComplete, showSettings, showStats])
 
   function handleResetWallet(newWallet) {
     updateState(() => initState(newWallet))
@@ -147,7 +149,17 @@ export default function App() {
     <div className="app" style={{ '--deck-color': deckColor }}>
       <header className="app-header">
         <div className="app-title">Face Up Pai Gow</div>
-        <WalletBar wallet={wallet} handHistory={handHistory} onReset={() => setShowSettings(true)} />
+        <div className="header-right">
+          <button
+            className="btn-stats"
+            onClick={() => setShowStats(true)}
+            title="Statistics"
+            aria-label="Statistics"
+          >
+            📊
+          </button>
+          <WalletBar wallet={wallet} handHistory={handHistory} onReset={() => setShowSettings(true)} />
+        </div>
       </header>
 
       <main className="game-area">
@@ -220,6 +232,13 @@ export default function App() {
           paiGowSideResult={paiGowSideResult}
           fortuneSideResult={fortuneSideResult}
           onNext={handleNextRound}
+        />
+      )}
+
+      {showStats && (
+        <StatsModal
+          allTimeHistory={allTimeHistory}
+          onClose={() => setShowStats(false)}
         />
       )}
 
