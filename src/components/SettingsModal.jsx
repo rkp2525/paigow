@@ -29,7 +29,16 @@ const DECK_COLOR_PRESETS = [
   { name: 'Gold', color: '#b8860b' },
 ]
 
-export default function SettingsModal({ wallet, allTimeHistory, handHistory = [], deckColor, onDeckColorChange, onSave, onCancel }) {
+const BG_COLOR_PRESETS = [
+  { name: 'Classic Felt', color: '#1a5c2a' },
+  { name: 'Midnight', color: '#0f2233' },
+  { name: 'Burgundy', color: '#4a1020' },
+  { name: 'Royal', color: '#1f2a5e' },
+  { name: 'Charcoal', color: '#2a2a2e' },
+  { name: 'Espresso', color: '#3a2a1c' },
+]
+
+export default function SettingsModal({ wallet, allTimeHistory, handHistory = [], deckColor, onDeckColorChange, bgColor, onBgColorChange, onSave, onCancel }) {
   const [value, setValue] = useState(String(wallet))
 
   // handHistory is newest-first; chart it oldest-first as a running bankroll.
@@ -108,6 +117,30 @@ export default function SettingsModal({ wallet, allTimeHistory, handHistory = []
               type="color"
               value={deckColor || '#2d2d8c'}
               onChange={e => onDeckColorChange(e.target.value)}
+            />
+            <span>+</span>
+          </label>
+        </div>
+
+        <h2>Background Color</h2>
+        <p>Pick the color of the table felt:</p>
+        <div className="deck-color-swatches">
+          {BG_COLOR_PRESETS.map(p => (
+            <button
+              key={p.color}
+              type="button"
+              title={p.name}
+              aria-label={p.name}
+              className={`deck-swatch${bgColor?.toLowerCase() === p.color.toLowerCase() ? ' deck-swatch-active' : ''}`}
+              style={{ background: p.color }}
+              onClick={() => onBgColorChange(p.color)}
+            />
+          ))}
+          <label className="deck-swatch deck-swatch-custom" title="Custom color">
+            <input
+              type="color"
+              value={bgColor || '#1a5c2a'}
+              onChange={e => onBgColorChange(e.target.value)}
             />
             <span>+</span>
           </label>
