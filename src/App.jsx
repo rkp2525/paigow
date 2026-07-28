@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { PHASE, dealRound, setPlayerHand, resolveRound, nextRound, MIN_BET, BET_INCREMENT } from './game/gameLogic.js'
 import { applyHouseWay } from './game/houseWay.js'
 import { initState, saveSession, appendAllTimeEntry, loadAllTimeHistory, loadDeckColor, saveDeckColor, loadBgColor, saveBgColor } from './store/gameStore.js'
+import { loadMuted, setMuted, playDeal, playWin, playLoss, playPush } from './sounds.js'
 import WalletBar from './components/WalletBar.jsx'
 import DealerSection from './components/DealerSection.jsx'
 import PlayerSection from './components/PlayerSection.jsx'
@@ -18,6 +19,7 @@ export default function App() {
   const [allTimeHistory, setAllTimeHistory] = useState(() => loadAllTimeHistory())
   const [deckColor, setDeckColor] = useState(() => loadDeckColor())
   const [bgColor, setBgColor] = useState(() => loadBgColor())
+  const [muted, setMutedState] = useState(() => loadMuted())
   const pendingHistoryEntryRef = useRef(null)
 
   // Persist wallet whenever it changes
@@ -34,7 +36,14 @@ export default function App() {
   }
 
   function handleDeal() {
+    playDeal()
     updateState(prev => dealRound({ ...prev, bet: prev.bet }))
+  }
+
+  function handleToggleMute() {
+    const next = !muted
+    setMutedState(next)
+    setMuted(next)
   }
 
   function handleBetChange(amount) {
@@ -82,6 +91,9 @@ export default function App() {
       appendAllTimeEntry(pendingHistoryEntryRef.current)
       setAllTimeHistory(loadAllTimeHistory())
       pendingHistoryEntryRef.current = null
+      if (state.outcome === 'WIN') playWin()
+      else if (state.outcome === 'LOSS') playLoss()
+      else if (state.outcome === 'PUSH') playPush()
     }
   }, [state.phase])
 
@@ -156,6 +168,14 @@ export default function App() {
       <header className="app-header">
         <div className="app-title">Face Up Pai Gow</div>
         <div className="header-right">
+          <button
+            className="btn-stats"
+            onClick={handleToggleMute}
+            title={muted ? 'Unmute' : 'Mute'}
+            aria-label={muted ? 'Unmute' : 'Mute'}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
           <button
             className="btn-stats"
             onClick={() => setShowStats(true)}
