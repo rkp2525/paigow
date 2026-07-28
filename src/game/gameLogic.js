@@ -135,7 +135,7 @@ export function resolveRound(state) {
     return net
   }
 
-  function mkEntry(outcome, mainWalletChange) {
+  function mkEntry(outcome, mainWalletChange, extra) {
     const walletAfter = wallet + mainWalletChange + sideNetChange()
     return {
       outcome, bet, walletAfter,
@@ -145,6 +145,8 @@ export function resolveRound(state) {
       fortuneSidePlaced: state.fortuneSideBet,
       fortuneSideWon: !!fortuneSideResult,
       fortuneSideMultiplier: fortuneSideResult?.multiplier ?? 0,
+      playerBack, playerFront, dealerBack, dealerFront,
+      ...extra,
     }
   }
 
@@ -152,7 +154,9 @@ export function resolveRound(state) {
   const pBackEval = evaluate5(playerBack)
   const pFrontEval = evaluate2(playerFront)
   if (compareHands(pBackEval, pFrontEval) < 0) {
-    const entry = mkEntry('LOSS', -bet)
+    const entry = mkEntry('LOSS', -bet, {
+      isFoul: true, isAceHighPaiGow: false, backResult: 'LOSS', frontResult: 'LOSS',
+    })
     return {
       ...state,
       phase: PHASE.RESULT,
@@ -176,7 +180,9 @@ export function resolveRound(state) {
   const isAceHighPaiGow = dealerBackEval.rank === HR.HIGH_CARD && dealerBackEval.tiebreakers[0] === 14
 
   if (isAceHighPaiGow) {
-    const entry = mkEntry('PUSH', 0)
+    const entry = mkEntry('PUSH', 0, {
+      isFoul: false, isAceHighPaiGow: true, backResult: 'TIE', frontResult: 'TIE',
+    })
     return {
       ...state,
       phase: PHASE.RESULT,
@@ -207,7 +213,9 @@ export function resolveRound(state) {
   else if (!playerWinsBack && !playerWinsFront) { outcome = 'LOSS'; mainChange = -bet }
   else { outcome = 'PUSH' }
 
-  const entry = mkEntry(outcome, mainChange)
+  const entry = mkEntry(outcome, mainChange, {
+    isFoul: false, isAceHighPaiGow: false, backResult, frontResult,
+  })
   return {
     ...state,
     phase: PHASE.RESULT,

@@ -10,12 +10,14 @@ import BetControls from './components/BetControls.jsx'
 import ResultOverlay from './components/ResultOverlay.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
 import StatsModal from './components/StatsModal.jsx'
+import HandHistoryModal from './components/HandHistoryModal.jsx'
 import './App.css'
 
 export default function App() {
   const [state, setState] = useState(() => initState())
   const [showSettings, setShowSettings] = useState(false)
   const [showStats, setShowStats] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const [allTimeHistory, setAllTimeHistory] = useState(() => loadAllTimeHistory())
   const [deckColor, setDeckColor] = useState(() => loadDeckColor())
   const [bgColor, setBgColor] = useState(() => loadBgColor())
@@ -116,7 +118,7 @@ export default function App() {
   // listener stays correct without depending on every handler identity.
   useEffect(() => {
     function onKeyDown(e) {
-      if (showSettings || showStats) return
+      if (showSettings || showStats || showHistory) return
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
       const tag = e.target?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return
@@ -133,7 +135,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [phase, playerHandComplete, showSettings, showStats])
+  }, [phase, playerHandComplete, showSettings, showStats, showHistory])
 
   function handleResetWallet(newWallet) {
     updateState(() => initState(newWallet))
@@ -183,6 +185,14 @@ export default function App() {
             aria-label="Statistics"
           >
             📊
+          </button>
+          <button
+            className="btn-stats"
+            onClick={() => setShowHistory(true)}
+            title="Hand History"
+            aria-label="Hand History"
+          >
+            📜
           </button>
           <WalletBar wallet={wallet} handHistory={handHistory} onReset={() => setShowSettings(true)} />
         </div>
@@ -265,6 +275,13 @@ export default function App() {
         <StatsModal
           allTimeHistory={allTimeHistory}
           onClose={() => setShowStats(false)}
+        />
+      )}
+
+      {showHistory && (
+        <HandHistoryModal
+          handHistory={handHistory}
+          onClose={() => setShowHistory(false)}
         />
       )}
 
