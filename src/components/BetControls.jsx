@@ -7,6 +7,12 @@ import { HR, HR_NAMES } from '../game/handEval.js'
 
 const CHIP_AMOUNTS = [5, 10, 25, 50, 100]
 
+const BET_PRESETS = [
+  { key: 'min', label: 'Min' },
+  { key: 'half', label: 'Half' },
+  { key: 'max', label: 'Max' },
+]
+
 // Built from the same payout constants the game pays out with, so the table
 // can never drift from the actual odds.
 const PAI_GOW_ROWS = [
@@ -47,6 +53,9 @@ function PayoutTable({ title, blurb, rows }) {
 export default function BetControls({ bet, wallet, paiGowSideBet, fortuneSideBet, onBetChange, onSideBetToggle, onDeal }) {
   const [showPayouts, setShowPayouts] = useState(false)
 
+  const sideTotal = (paiGowSideBet ? SIDE_BET_AMOUNT : 0) + (fortuneSideBet ? SIDE_BET_AMOUNT : 0)
+  const availableForBet = wallet - sideTotal
+
   function adjustBet(delta) {
     const next = Math.max(MIN_BET, Math.min(wallet, bet + delta))
     onBetChange(Math.round(next / BET_INCREMENT) * BET_INCREMENT)
@@ -57,7 +66,16 @@ export default function BetControls({ bet, wallet, paiGowSideBet, fortuneSideBet
     onBetChange(clamped)
   }
 
-  const sideTotal = (paiGowSideBet ? SIDE_BET_AMOUNT : 0) + (fortuneSideBet ? SIDE_BET_AMOUNT : 0)
+  function presetAmount(key) {
+    const target = key === 'min' ? MIN_BET : key === 'half' ? availableForBet / 2 : availableForBet
+    const rounded = Math.floor(target / BET_INCREMENT) * BET_INCREMENT
+    return Math.max(MIN_BET, Math.min(availableForBet, rounded))
+  }
+
+  function setPreset(key) {
+    onBetChange(presetAmount(key))
+  }
+
   const canDeal = bet >= MIN_BET && (bet + sideTotal) <= wallet
   const canAffordSide = wallet >= bet + sideTotal + SIDE_BET_AMOUNT
 
@@ -81,6 +99,19 @@ export default function BetControls({ bet, wallet, paiGowSideBet, fortuneSideBet
             disabled={a > wallet}
           >
             ${a}
+          </button>
+        ))}
+      </div>
+
+      <div className="bet-preset-row">
+        {BET_PRESETS.map(p => (
+          <button
+            key={p.key}
+            className={`btn-preset${bet === presetAmount(p.key) ? ' preset-active' : ''}`}
+            onClick={() => setPreset(p.key)}
+            disabled={availableForBet < MIN_BET}
+          >
+            {p.label}
           </button>
         ))}
       </div>
