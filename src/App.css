@@ -925,6 +925,66 @@ html, body, #root {
   font-weight: 400;
 }
 
+/* ===== HAND HISTORY ===== */
+.modal-history { width: min(420px, 92vw); }
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.history-entry {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(201,162,39,0.35);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-entry-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.history-outcome { text-transform: uppercase; letter-spacing: 0.4px; }
+.history-bet { opacity: 0.75; font-weight: 600; margin-left: auto; }
+
+.history-note {
+  font-size: 12px;
+  opacity: 0.75;
+  font-style: italic;
+}
+
+.history-hands {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-hand-row { display: flex; flex-direction: column; gap: 3px; }
+.history-hand-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.6;
+}
+
+.history-side-bets {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* ===== MODAL ===== */
 .modal-backdrop {
   position: fixed;
