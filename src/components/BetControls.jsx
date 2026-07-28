@@ -4,6 +4,7 @@ import {
   PAI_GOW_PAY, PAI_GOW_DEFAULT_PAY, FORTUNE_PAY, ROYAL_FLUSH_PAY,
 } from '../game/gameLogic.js'
 import { HR, HR_NAMES } from '../game/handEval.js'
+import { playChip } from '../sounds.js'
 
 const CHIP_AMOUNTS = [5, 10, 25, 50, 100]
 
@@ -53,6 +54,7 @@ export default function BetControls({ bet, wallet, paiGowSideBet, fortuneSideBet
   }
 
   function setChip(amount) {
+    playChip()
     const clamped = Math.max(MIN_BET, Math.min(wallet, amount))
     onBetChange(clamped)
   }
