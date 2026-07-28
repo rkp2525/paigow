@@ -529,6 +529,32 @@ html, body, #root {
 .chip-active { background: var(--gold) !important; color: #000; }
 .chip:disabled { opacity: 0.3; cursor: not-allowed; }
 
+.bet-preset-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+}
+.btn-preset {
+  flex: 1;
+  padding: 6px 6px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(201,162,39,0.4);
+  background: rgba(255,255,255,0.04);
+  color: var(--gold-light);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-preset:hover:not(:disabled) { background: rgba(201,162,39,0.15); }
+.btn-preset.preset-active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #000;
+}
+.btn-preset:disabled { opacity: 0.3; cursor: not-allowed; }
+
 .side-bet-row {
   display: flex;
   gap: 8px;
