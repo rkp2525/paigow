@@ -24,6 +24,19 @@ export default function App() {
   const [muted, setMutedState] = useState(() => loadMuted())
   const pendingHistoryEntryRef = useRef(null)
 
+  const { phase, wallet, bet, playerCards, playerBack, playerFront,
+    dealerBack, dealerFront, outcome, isAceHighPaiGow, isFoul,
+    foulBackName, foulFrontName, backResult, frontResult, coachingHint,
+    paiGowSideBet, fortuneSideBet, paiGowSideResult, fortuneSideResult,
+    handHistory } = state
+
+  const playerHandComplete = playerBack.length === 5 && playerFront.length === 2
+  const dealerRevealed = phase === 'SETTING' || phase === 'RESULT'
+
+  // In Face Up: dealer cards are always shown in SETTING phase
+  // Only show results comparison in RESULT phase
+  const showDealerResult = phase === 'RESULT'
+
   // Persist wallet whenever it changes
   useEffect(() => {
     saveSession(state)
@@ -151,19 +164,6 @@ export default function App() {
     setBgColor(color)
     saveBgColor(color)
   }
-
-  const { phase, wallet, bet, playerCards, playerBack, playerFront,
-    dealerBack, dealerFront, outcome, isAceHighPaiGow, isFoul,
-    foulBackName, foulFrontName, backResult, frontResult, coachingHint,
-    paiGowSideBet, fortuneSideBet, paiGowSideResult, fortuneSideResult,
-    handHistory } = state
-
-  const playerHandComplete = playerBack.length === 5 && playerFront.length === 2
-  const dealerRevealed = phase === 'SETTING' || phase === 'RESULT'
-
-  // In Face Up: dealer cards are always shown in SETTING phase
-  // Only show results comparison in RESULT phase
-  const showDealerResult = phase === 'RESULT'
 
   return (
     <div className="app" style={{ '--deck-color': deckColor, '--felt': bgColor }}>
