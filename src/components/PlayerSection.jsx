@@ -201,6 +201,7 @@ export default function PlayerSection({
             <Card
               key={c.id}
               card={c}
+              small
               selected={selected === c.id}
               dragging={draggingId === c.id}
               onPointerDown={e => startDrag(e, c)}
@@ -208,7 +209,7 @@ export default function PlayerSection({
             />
           ))}
           {Array(Math.max(0, 2 - playerFront.length)).fill(null).map((_, i) => (
-            <Card key={`ph-${i}`} />
+            <Card key={`ph-${i}`} small />
           ))}
         </div>
         {showResult && playerFront.length === 2 && (
@@ -233,6 +234,7 @@ export default function PlayerSection({
             <Card
               key={c.id}
               card={c}
+              small
               selected={selected === c.id}
               dragging={draggingId === c.id}
               onPointerDown={e => startDrag(e, c)}
@@ -240,7 +242,7 @@ export default function PlayerSection({
             />
           ))}
           {Array(Math.max(0, 5 - playerBack.length)).fill(null).map((_, i) => (
-            <Card key={`pb-${i}`} />
+            <Card key={`pb-${i}`} small />
           ))}
         </div>
         {showResult && playerBack.length === 5 && (
@@ -273,13 +275,17 @@ export default function PlayerSection({
         </div>
       )}
 
-      {/* Drag ghost — follows pointer, pointer-events:none so zones remain hittable */}
+      {/* Drag ghost — follows pointer, pointer-events:none so zones remain hittable.
+          Sized to match wherever the card is being dragged from. */}
       {drag && dragMoved.current && (
         <div
           className="card-ghost"
           style={{ left: drag.x, top: drag.y }}
         >
-          <Card card={drag.card} />
+          <Card
+            card={drag.card}
+            small={playerFront.some(c => c.id === drag.card.id) || playerBack.some(c => c.id === drag.card.id)}
+          />
         </div>
       )}
     </div>
