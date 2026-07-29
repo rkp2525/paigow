@@ -167,38 +167,40 @@ export default function App() {
 
   return (
     <div className="app" style={{ '--deck-color': deckColor, '--felt': bgColor }}>
-      <header className="app-header">
-        <div className="app-title">Face Up Pai Gow</div>
-        <div className="header-right">
-          <button
-            className="btn-stats"
-            onClick={handleToggleMute}
-            title={muted ? 'Unmute' : 'Mute'}
-            aria-label={muted ? 'Unmute' : 'Mute'}
-          >
-            {muted ? '🔇' : '🔊'}
-          </button>
-          <button
-            className="btn-stats"
-            onClick={() => setShowStats(true)}
-            title="Statistics"
-            aria-label="Statistics"
-          >
-            📊
-          </button>
-          <button
-            className="btn-stats"
-            onClick={() => setShowHistory(true)}
-            title="Hand History"
-            aria-label="Hand History"
-          >
-            📜
-          </button>
-          <WalletBar wallet={wallet} handHistory={handHistory} onReset={() => setShowSettings(true)} />
-        </div>
-      </header>
+      {phase === PHASE.BETTING && (
+        <header className="app-header">
+          <div className="app-title">Face Up Pai Gow</div>
+          <div className="header-right">
+            <button
+              className="btn-stats"
+              onClick={handleToggleMute}
+              title={muted ? 'Unmute' : 'Mute'}
+              aria-label={muted ? 'Unmute' : 'Mute'}
+            >
+              {muted ? '🔇' : '🔊'}
+            </button>
+            <button
+              className="btn-stats"
+              onClick={() => setShowStats(true)}
+              title="Statistics"
+              aria-label="Statistics"
+            >
+              📊
+            </button>
+            <button
+              className="btn-stats"
+              onClick={() => setShowHistory(true)}
+              title="Hand History"
+              aria-label="Hand History"
+            >
+              📜
+            </button>
+            <WalletBar wallet={wallet} handHistory={handHistory} onReset={() => setShowSettings(true)} />
+          </div>
+        </header>
+      )}
 
-      <main className="game-area">
+      <main className={`game-area${phase !== PHASE.BETTING ? ' game-area-no-header' : ''}`}>
         {/* Dealer section always at top */}
         <DealerSection
           dealerFront={dealerFront}

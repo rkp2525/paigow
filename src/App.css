@@ -12,9 +12,9 @@
      --card-h/-w are the player's own cards (front, back, and the unassigned
      tray) — sized generously since that's what you're actually reading and
      tapping. --card-sm-h/-w is just the dealer's reference hand. */
-  --card-h: clamp(42px, 10dvh, 78px);
+  --card-h: clamp(48px, 14dvh, 96px);
   --card-w: calc(var(--card-h) * 0.7027);
-  --card-sm-h: clamp(30px, 6.8dvh, 60px);
+  --card-sm-h: clamp(32px, 7.8dvh, 70px);
   --card-sm-w: calc(var(--card-sm-h) * 0.6897);
   --radius: 6px;
   --win-color: #22c55e;
@@ -242,6 +242,12 @@ html, body, #root {
   gap: clamp(4px, 1dvh, 10px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Header is hidden once a hand is dealt (more room for cards) — reserve the
+   notch/status-bar inset here instead so content doesn't sit under it. */
+.game-area-no-header {
+  padding-top: max(clamp(6px, 1.4dvh, 12px), env(safe-area-inset-top));
 }
 
 .divider {
