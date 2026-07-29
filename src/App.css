@@ -8,10 +8,13 @@
   --gold: #c9a227;
   --gold-light: #f0c040;
   /* Card sizes scale with viewport height so a full hand + controls always
-     fits without scrolling, from short landscape phones up to desktop. */
-  --card-h: clamp(38px, 9dvh, 74px);
+     fits without scrolling, from short landscape phones up to desktop.
+     --card-h/-w are the player's own cards (front, back, and the unassigned
+     tray) — sized generously since that's what you're actually reading and
+     tapping. --card-sm-h/-w is just the dealer's reference hand. */
+  --card-h: clamp(42px, 10dvh, 78px);
   --card-w: calc(var(--card-h) * 0.7027);
-  --card-sm-h: clamp(30px, 6.6dvh, 58px);
+  --card-sm-h: clamp(30px, 6.8dvh, 60px);
   --card-sm-w: calc(var(--card-sm-h) * 0.6897);
   --radius: 6px;
   --win-color: #22c55e;
@@ -281,7 +284,7 @@ html, body, #root {
 
 .hand-drop-zone {
   border-radius: var(--radius);
-  padding: 6px 6px 6px;
+  padding: 3px;
   cursor: default;
   transition: background 0.15s;
 }
@@ -298,7 +301,7 @@ html, body, #root {
 
 .unassigned-group {
   border-top: 2px solid rgba(201,162,39,0.35);
-  padding-top: 12px;
+  padding-top: 6px;
   margin-top: 4px;
 }
 
@@ -308,10 +311,23 @@ html, body, #root {
   gap: 6px;
 }
 
+/* Unassigned "your cards" tray — cards stay full-size (same as the front/back
+   hands you're building) and the tray scrolls horizontally instead of
+   shrinking cards to cram all 7 into one narrow row. */
+.card-row.card-row-scroll {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-inline: 4px;
+  padding-bottom: 4px;
+  margin-bottom: -4px;
+}
+
 /* ===== CARD ROW ===== */
 .card-row {
   display: flex;
-  gap: 5px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -663,7 +679,7 @@ html, body, #root {
 .setting-controls {
   display: flex;
   gap: 10px;
-  padding: 4px 0 8px;
+  padding: 2px 0 4px;
   flex-shrink: 0;
 }
 

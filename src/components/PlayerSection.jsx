@@ -258,12 +258,11 @@ export default function PlayerSection({
             Your Cards
             <span className="hand-count">{unassigned.length} remaining</span>
           </div>
-          <div className="card-row card-row-nowrap">
+          <div className="card-row card-row-scroll">
             {unassigned.map(c => (
               <Card
                 key={c.id}
                 card={c}
-                small
                 selected={selected === c.id}
                 dragging={draggingId === c.id}
                 onPointerDown={e => startDrag(e, c)}
